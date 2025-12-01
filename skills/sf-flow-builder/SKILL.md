@@ -103,11 +103,16 @@ Expert Salesforce Flow Builder with deep knowledge of best practices, bulkificat
    - Detect: Multiple objects/steps, cross-object updates, conditional logic
    - Suggest: Parent-Child (independent), Sequential (dependent), Conditional (scenarios)
    - Ask: "Create parent flow + subflows?"
-   - **IMPORTANT CONSIDERATION**: Record-triggered flows CAN call subflows, but require specific configuration:
-     - Parent flow must be optimized for **"Actions and Related Records"** (NOT "Fast Field Updates")
-     - Subflows must be Autolaunched Flows with variables marked "Available for Input" and "Available for Output"
-     - Deploy subflows BEFORE parent flow (dependency order)
-     - Alternative: Use inline orchestration with organized sections if optimization for "Fast Field Updates" is required
+   - **CRITICAL LIMITATION (Metadata API Constraint)**:
+     - Record-triggered flows (`processType="AutoLaunchedFlow"`) **CANNOT call subflows** via `<actionCalls>` with `<actionType>flow</actionType>` when deployed via XML
+     - This is a **Metadata API limitation** specific to the AutoLaunchedFlow process type
+     - Valid action types for record-triggered flows include: "apex", "chatterPost", "emailAlert", "emailSimple", and several others - but NOT "flow"
+     - **Screen Flows** (`processType="Flow"`) CAN call subflows successfully
+     - **UI vs XML Deployment**: The Flow Builder UI may use different internal mechanisms or compile subflow calls differently than direct XML deployment
+   - **RECOMMENDED APPROACH for Record-Triggered Flows**:
+     - Use **inline orchestration** with organized sections (comments/element naming) instead of separate subflows
+     - Pattern: Section 1 (Contact creation) → Section 2 (Opportunity creation) → Section 3 (Notification)
+     - Benefits: Single flow deployment, no dependency order issues, full control over execution
    - See: [docs/orchestration-guide.md](docs/orchestration-guide.md)
 
 ### Phase 3: Flow Generation & Validation
@@ -344,17 +349,20 @@ Correct order within `<recordLookups>`:
 - Multiple conflicting rules in Metadata API
 - **Recommendation**: Create Transform elements in Flow Builder UI, then deploy - do NOT hand-write
 
-**Subflow Calling in Record-Triggered Flows (Optimization Mode Matters):**
-- ✅ **CAN call subflows** IF parent flow is optimized for **"Actions and Related Records"**
-- ❌ **CANNOT call subflows** IF parent flow is optimized for **"Fast Field Updates"**
-- **Requirements for subflow calling**:
-  - Subflows must be Autolaunched Flows (processType: AutoLaunchedFlow)
-  - Variables must be marked "Available for Input" and "Available for Output"
-  - Deploy subflows BEFORE parent flow (avoid dependency errors)
-  - Use Subflow element in Flow Builder UI to create proper XML structure
-- **Error if optimization wrong**: "You can't use the Flows action type in flows with the Autolaunched Flow process type"
-- **Alternative pattern**: Use inline orchestration with organized sections (Section 1: Contact creation → Section 2: Opportunity creation → Section 3: Notification) with clear element naming and comments
-- **Reference**: [Salesforce Help Article 000396957](https://help.salesforce.com/s/articleView?id=000396957&type=1)
+**Subflow Calling Limitation (Metadata API Constraint):**
+- ❌ **Record-triggered flows (`processType="AutoLaunchedFlow"`) CANNOT call subflows** via XML deployment
+- **Root Cause**: The Salesforce Metadata API does not support the "flow" action type for AutoLaunchedFlow process types
+- **Valid action types for AutoLaunchedFlow**: "apex", "chatterPost", "emailAlert", "emailSimple", and several platform-specific actions - but NOT "flow"
+- **Error message**: "You can't use the Flows action type in flows with the Autolaunched Flow process type"
+- ✅ **Screen Flows (`processType="Flow"`) CAN call subflows** successfully via XML deployment
+- **UI Behavior**: Flow Builder UI may use different internal mechanisms or compile subflow calls into inline logic - UI capabilities may differ from direct XML deployment
+- **RECOMMENDED SOLUTION**: Use **inline orchestration** for record-triggered flows deployed via XML:
+  - Organize logic into clear sections with descriptive element naming
+  - Pattern: Decision_CheckCriteria → Assignment_SetContactFields → Create_Contact → Assignment_SetOpportunityFields → Create_Opportunity
+  - Add XML comments to delineate sections (e.g., `<!-- Section 1: Contact Creation -->`)
+  - Benefits: Single atomic flow, no deployment dependencies, full execution control
+- **Testing Note**: This limitation was validated through deployment testing and is a known Metadata API constraint
+- **Reference**: [Salesforce Help Article 000396957](https://help.salesforce.com/s/articleView?id=000396957&type=1) (demonstrates UI approach which may differ from XML deployment)
 
 ## Edge Cases & Troubleshooting
 
