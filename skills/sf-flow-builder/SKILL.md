@@ -203,12 +203,34 @@ Skill(skill="sf-deployment")
 Request: "Proceed with actual deployment of flow to [target-org]."
 ```
 
-4. **Step 3: Activation Prompt**
+4. **Step 3: Automatic Activation for Testing**
+
+**ALWAYS activate flows after successful deployment** to enable immediate testing.
+
 ```
-AskUserQuestion: "Activate '[FlowName]' now or keep Draft?"
-Options: Activate Now (⚠️ caution in prod), Keep Draft (✓ recommended)
+Steps:
+1. Edit flow status from Draft to Active
+2. Re-deploy to target org
+3. Verify activation successful
 ```
-If activate: Edit status to `<status>Active</status>`, re-deploy, verify.
+
+**Implementation:**
+```bash
+# Edit flow status
+Edit: force-app/main/default/flows/[FlowName].flow-meta.xml
+Change: <status>Draft</status> → <status>Active</status>
+
+# Re-deploy with active status
+Skill(skill="sf-deployment")
+Request: "Deploy activated flow to [target-org]"
+```
+
+**Why activate immediately:**
+- ✅ Enables unit testing and manual testing
+- ✅ Allows verification of flow logic with real data
+- ✅ Catches runtime errors early (before production)
+- ✅ Validates trigger criteria and entry conditions
+- ⚠️ **Note**: For production orgs, test thoroughly in sandbox first before activating
 
 5. **Generate Flow Documentation:**
 ```bash
@@ -330,6 +352,16 @@ Salesforce Metadata API requires strict alphabetical ordering. Required order:
 **Missing Fault Path:** Add fault connector from DML → error handling element → log/display error
 **Field Not Found:** Verify field exists in target org, deploy field first if missing
 **Insufficient Permissions:** Check profile permissions, consider System mode, verify FLS
+
+**$Record__Prior Usage (CRITICAL):**
+- ❌ **NEVER use `$Record__Prior` in Create-only triggers** (`<recordTriggerType>Create</recordTriggerType>`)
+- **Error message**: "Customer Account Created - $Record__Prior can only be used in autolaunched flows with a recordTriggerType of Update or CreateAndUpdate"
+- **Why**: New records have no prior state - `$Record__Prior` is null/unavailable for Create triggers
+- ✅ **Valid trigger types for `$Record__Prior`**:
+  - `<recordTriggerType>Update</recordTriggerType>` - Only updates
+  - `<recordTriggerType>CreateAndUpdate</recordTriggerType>` - Both creates and updates
+- **Use case**: Compare old vs new values (e.g., "Status changed from Draft to Active")
+- **For Create-only triggers**: Just check `$Record` fields - no need for prior comparison since records are new
 
 ### XML Metadata Gotchas (CRITICAL)
 
