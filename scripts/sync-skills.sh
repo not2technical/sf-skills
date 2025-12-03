@@ -13,8 +13,10 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Directories
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
-REPO_SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/skills"
+REPO_SKILLS_DIR="$REPO_ROOT/skills"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Syncing Claude Code Skills to Repository${NC}"

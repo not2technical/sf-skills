@@ -4,10 +4,14 @@
 # Author: Jag Valaiyapathy
 # License: MIT
 #
-# Usage: ./upgrade.sh [--global|--local]
+# Usage: ./scripts/upgrade.sh [--global|--local]
 #
 
 set -e
+
+# Get the directory where this script is located and repo root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -86,7 +90,7 @@ get_version() {
 # Check current versions
 for skill in "${SKILLS[@]}"; do
   CURRENT_DIR="$SKILLS_DIR/$skill"
-  SOURCE_DIR="skills/$skill"
+  SOURCE_DIR="$REPO_ROOT/skills/$skill"
 
   if [ -d "$CURRENT_DIR" ]; then
     CURRENT_VERSION=$(get_version "$CURRENT_DIR")
@@ -122,7 +126,7 @@ echo ""
 # Upgrade each skill
 for skill in "${SKILLS[@]}"; do
   TARGET="$SKILLS_DIR/$skill"
-  SOURCE="skills/$skill"
+  SOURCE="$REPO_ROOT/skills/$skill"
 
   if [ ! -d "$TARGET" ]; then
     echo -e "${YELLOW}⏭ Skipping $skill (not installed)${NC}"

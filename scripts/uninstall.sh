@@ -4,10 +4,14 @@
 # Author: Jag Valaiyapathy
 # License: MIT
 #
-# Usage: ./uninstall.sh [--global|--local]
+# Usage: ./scripts/uninstall.sh [--global|--local]
 #
 
 set -e
+
+# Get the directory where this script is located and repo root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors for output
 RED='\033[0;31m'

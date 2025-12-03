@@ -4,10 +4,14 @@
 # Author: Jag Valaiyapathy
 # License: MIT
 #
-# Usage: ./install.sh [--global|--local]
+# Usage: ./scripts/install.sh [--global|--local]
 #
 
 set -e
+
+# Get the directory where this script is located and repo root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -96,11 +100,11 @@ for skill in "${SKILLS[@]}"; do
   fi
 
   # Copy skill directory
-  if [ -d "skills/$skill" ]; then
-    cp -r "skills/$skill" "$TARGET"
+  if [ -d "$REPO_ROOT/skills/$skill" ]; then
+    cp -r "$REPO_ROOT/skills/$skill" "$TARGET"
     echo -e "${GREEN}  ✓ Installed $skill${NC}"
   else
-    echo -e "${RED}  ✗ Error: Skill source not found at skills/$skill${NC}"
+    echo -e "${RED}  ✗ Error: Skill source not found at $REPO_ROOT/skills/$skill${NC}"
     exit 1
   fi
 done
@@ -159,9 +163,9 @@ echo -e "  • skill-builder: $SKILLS_DIR/skill-builder/README.md"
 echo ""
 
 echo -e "${CYAN}💡 Tips:${NC}"
-echo -e "  • Run ${YELLOW}./upgrade.sh${NC} to update skills to the latest version"
-echo -e "  • Run ${YELLOW}./uninstall.sh${NC} to remove all skills"
-echo -e "  • Report issues: https://github.com/YOUR_USERNAME/YOUR_REPO/issues"
+echo -e "  • Run ${YELLOW}./scripts/upgrade.sh${NC} to update skills to the latest version"
+echo -e "  • Run ${YELLOW}./scripts/uninstall.sh${NC} to remove all skills"
+echo -e "  • Report issues: https://github.com/Jaganpro/claude-code-sfskills/issues"
 echo ""
 
 echo -e "${GREEN}Happy skill building! 🎉${NC}"
