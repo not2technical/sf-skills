@@ -17,25 +17,52 @@ A collection of Claude Code skills for Salesforce development, specializing in A
 
 ## Roadmap
 
-This project follows a structured naming convention for Salesforce skills:
-
+### Naming Convention
 ```
-sf-{capability}           # Cross-cutting (apex, flow, admin, security)
-sf-cloud-{name}           # Cloud-specific (sales, service, marketing)
-sf-product-{name}         # Product-specific (datacloud, cpq, omnistudio)
-sf-industry-{name}        # Industry-specific (healthcare, finserv)
-sf-ai-{name}              # AI features (agentforce, einstein, copilot)
+sf-{capability}           # Cross-cutting (apex, flow, admin)
+sf-ai-{name}              # AI features (agentforce, copilot)
+sf-product-{name}         # Products (datacloud, omnistudio)
+sf-cloud-{name}           # Clouds (sales, service)
+sf-industry-{name}        # Industries (healthcare, finserv)
 ```
 
-### Planned Skills
+### 🔧 Cross-Cutting Skills
+| Skill | Description | Status |
+|-------|-------------|--------|
+| `sf-admin` | Objects, fields, layouts | 📋 Planned |
+| `sf-security` | Profiles, permissions, sharing | 📋 Planned |
+| `sf-integration` | REST, SOAP, Platform Events | 📋 Planned |
+| `sf-testing` | Test strategy, mocking, coverage | 📋 Planned |
+| `sf-debugging` | Debug logs, Apex replay | 📋 Planned |
+| `sf-migration` | Org-to-org, metadata comparison | 📋 Planned |
+| `sf-data` | Data migration, ETL, bulk ops | 📋 Planned |
 
-| Phase | Category | Skills |
-|-------|----------|--------|
-| **Phase 1** | Cross-Cutting | `sf-admin`, `sf-security`, `sf-integration`, `sf-testing`, `sf-debugging`, `sf-migration`, `sf-data` |
-| **Phase 2** | AI/Automation | `sf-ai-agentforce`, `sf-ai-copilot`, `sf-ai-einstein` |
-| **Phase 3** | Products | `sf-product-datacloud`, `sf-product-omnistudio` |
-| **Phase 4** | Clouds | `sf-cloud-sales`, `sf-cloud-service`, `sf-cloud-experience` |
-| **Phase 5** | Industries | `sf-industry-healthcare`, `sf-industry-finserv`, `sf-industry-revenue` |
+### 🤖 AI & Automation
+| Skill | Description | Status |
+|-------|-------------|--------|
+| `sf-ai-agentforce` | Agent Studio, Topics, Actions | 📋 Planned |
+| `sf-ai-copilot` | Einstein Copilot, Prompts | 📋 Planned |
+| `sf-ai-einstein` | Prediction Builder, NBA | 📋 Planned |
+
+### 📦 Products
+| Skill | Description | Status |
+|-------|-------------|--------|
+| `sf-product-datacloud` | Unified profiles, segments | 📋 Planned |
+| `sf-product-omnistudio` | FlexCards, DataRaptors | 📋 Planned |
+
+### ☁️ Clouds
+| Skill | Description | Status |
+|-------|-------------|--------|
+| `sf-cloud-sales` | Opportunities, Quotes, Forecasting | 📋 Planned |
+| `sf-cloud-service` | Cases, Omni-Channel, Knowledge | 📋 Planned |
+| `sf-cloud-experience` | Communities, Portals | 📋 Planned |
+
+### 🏢 Industries
+| Skill | Description | Status |
+|-------|-------------|--------|
+| `sf-industry-healthcare` | FHIR, Care Plans, Compliance | 📋 Planned |
+| `sf-industry-finserv` | KYC, AML, Wealth Management | 📋 Planned |
+| `sf-industry-revenue` | CPQ, Billing, Revenue Lifecycle | 📋 Planned |
 
 **Total: 22 skills** (4 built, 18 planned)
 
