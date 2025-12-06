@@ -17,8 +17,8 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ```bash
 # Fork the repository on GitHub, then:
-git clone https://github.com/your-github-username/claude-code-salesforce-skills.git
-cd claude-code-salesforce-skills
+git clone https://github.com/your-github-username/sf-skills.git
+cd sf-skills
 ```
 
 ### 2. Install for Development
@@ -26,9 +26,6 @@ cd claude-code-salesforce-skills
 ```bash
 # Install as a plugin for testing
 /plugin install .
-
-# Or use legacy script
-./scripts/install.sh --local
 ```
 
 ### 3. Create a Branch

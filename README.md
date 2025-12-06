@@ -25,23 +25,13 @@ A collection of Claude Code skills for Salesforce development, specializing in A
 
 That's it! Skills are loaded automatically.
 
-### Option 2: Manual Install
+### Option 2: Local Install
 
 ```bash
 git clone https://github.com/Jaganpro/sf-skills.git
 cd sf-skills
 /plugin install .
 ```
-
-### Option 3: Legacy Install (Deprecated)
-
-```bash
-git clone https://github.com/Jaganpro/sf-skills.git
-cd sf-skills
-./scripts/install.sh
-```
-
-**Restart Claude Code** after manual installation to load the skills.
 
 ## 🔌 Plugin Features
 
@@ -142,16 +132,6 @@ sf-industry-{name}        # Industries (healthcare, finserv)
 | `/plugin uninstall sf-skills` | Remove the plugin |
 | `/plugin list` | List installed plugins |
 
-### Legacy Scripts (Deprecated)
-
-For manual installations, scripts are in the `scripts/` folder:
-
-| Script | Description |
-|--------|-------------|
-| `./scripts/install.sh` | Install skills (use `--local` for project-only) |
-| `./scripts/upgrade.sh` | Upgrade to latest version |
-| `./scripts/uninstall.sh` | Remove all skills |
-
 ## Prerequisites
 
 - **Claude Code** (latest version)
@@ -194,7 +174,7 @@ For manual installations, scripts are in the `scripts/` folder:
 
 ## Issues & Support
 
-- [GitHub Issues](https://github.com/Jaganpro/claude-code-sfskills/issues)
+- [GitHub Issues](https://github.com/Jaganpro/sf-skills/issues)
 
 ## License
 
