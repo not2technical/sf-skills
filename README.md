@@ -8,93 +8,122 @@ A collection of Claude Code skills for Salesforce development, specializing in A
 
 ## ✨ Available Skills
 
-| Skill | Description | Status |
-|-------|-------------|--------|
-| **[sf-apex](skills/sf-apex/)** | Apex code generation & review | ✅ Live |
-| **[sf-flow-builder](skills/sf-flow-builder/)** | Flow creation & validation | ✅ Live |
-| **[sf-deployment](skills/sf-deployment/)** | DevOps & CI/CD automation | ✅ Live |
-| **[skill-builder](skills/skill-builder/)** | Claude Code skill wizard | ✅ Live |
+| Skill | Description | Install Command |
+|-------|-------------|-----------------|
+| **[sf-apex](sf-apex/)** | Apex code generation & review with 150-point scoring | `/plugin install github:Jaganpro/sf-skills/sf-apex` |
+| **[sf-flow-builder](sf-flow-builder/)** | Flow creation & validation with 110-point scoring | `/plugin install github:Jaganpro/sf-skills/sf-flow-builder` |
+| **[sf-deployment](sf-deployment/)** | DevOps & CI/CD automation using sf CLI v2 | `/plugin install github:Jaganpro/sf-skills/sf-deployment` |
+| **[skill-builder](skill-builder/)** | Claude Code skill creation wizard | `/plugin install github:Jaganpro/sf-skills/skill-builder` |
 
-## 🚀 Quick Install
+## 🚀 Installation
 
-### Option 1: Plugin Install (Recommended)
+### Install Individual Skills (Recommended)
+
+Install only the skills you need:
+
+```bash
+# Flow development
+/plugin install github:Jaganpro/sf-skills/sf-flow-builder
+
+# Apex development
+/plugin install github:Jaganpro/sf-skills/sf-apex
+
+# Deployment automation
+/plugin install github:Jaganpro/sf-skills/sf-deployment
+
+# Skill creation wizard
+/plugin install github:Jaganpro/sf-skills/skill-builder
+```
+
+### Install All Skills at Once
+
+Get the complete Salesforce development suite:
 
 ```bash
 /plugin install github:Jaganpro/sf-skills
 ```
 
-That's it! Skills are loaded automatically.
+This installs all 4 skills as a bundle.
 
-### Option 2: Local Install
+### Local Development Install
 
 ```bash
 git clone https://github.com/Jaganpro/sf-skills.git
 cd sf-skills
+
+# Install specific skill
+/plugin install ./sf-flow-builder
+
+# Or install all
 /plugin install .
 ```
 
+## 🔗 Skill Dependencies
+
+Some skills work together for a complete workflow:
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│  sf-flow-builder │────▶│  sf-deployment  │
+└─────────────────┘     └─────────────────┘
+                              ▲
+┌─────────────────┐           │
+│     sf-apex     │───────────┘
+└─────────────────┘
+```
+
+- **sf-flow-builder** and **sf-apex** optionally use **sf-deployment** for deploying to Salesforce orgs
+- Each skill works standalone, but will prompt you to install dependencies if needed
+
 ## 🔌 Plugin Features
 
-This plugin includes **automatic validation hooks** that run when you write Salesforce files:
+### Automatic Validation Hooks
 
-| File Type | Validation |
-|-----------|------------|
-| `*.flow-meta.xml` | Flow best practices, 110-point scoring |
-| `*.cls`, `*.trigger` | Apex anti-patterns, 150-point scoring |
-| `SKILL.md` | YAML frontmatter validation |
+Each skill includes validation hooks that run automatically when you write files:
 
-Hooks provide advisory feedback after writes - they inform but don't block.
+| Skill | File Type | Validation |
+|-------|-----------|------------|
+| sf-flow-builder | `*.flow-meta.xml` | Flow best practices, 110-point scoring, bulk safety |
+| sf-apex | `*.cls`, `*.trigger` | Apex anti-patterns, 150-point scoring, TAF compliance |
+| skill-builder | `SKILL.md` | YAML frontmatter validation |
 
-## Roadmap
+Hooks provide **advisory feedback** after writes - they inform but don't block.
 
-### Naming Convention
-```
-sf-{capability}           # Cross-cutting (apex, flow, admin)
-sf-ai-{name}              # AI features (agentforce, copilot)
-sf-product-{name}         # Products (datacloud, omnistudio)
-sf-cloud-{name}           # Clouds (sales, service)
-sf-industry-{name}        # Industries (healthcare, finserv)
-```
+### Validation Scoring
 
-### 🔧 Cross-Cutting Skills
-| Skill | Description | Status |
-|-------|-------------|--------|
-| `sf-admin` | Objects, fields, layouts | 📋 Planned |
-| `sf-security` | Profiles, permissions, sharing | 📋 Planned |
-| `sf-integration` | REST, SOAP, Platform Events | 📋 Planned |
-| `sf-testing` | Test strategy, mocking, coverage | 📋 Planned |
-| `sf-debugging` | Debug logs, Apex replay | 📋 Planned |
-| `sf-migration` | Org-to-org, metadata comparison | 📋 Planned |
-| `sf-data` | Data migration, ETL, bulk ops | 📋 Planned |
+**Flow Validation (110 points)**:
+- Design & Naming (20 pts)
+- Logic & Structure (20 pts)
+- Architecture (15 pts)
+- Performance & Bulk Safety (20 pts)
+- Error Handling (20 pts)
+- Security (15 pts)
 
-### 🤖 AI & Automation
-| Skill | Description | Status |
-|-------|-------------|--------|
-| `sf-ai-agentforce` | Agent Studio, Topics, Actions | 📋 Planned |
-| `sf-ai-copilot` | Einstein Copilot, Prompts | 📋 Planned |
-| `sf-ai-einstein` | Prediction Builder, NBA | 📋 Planned |
+**Apex Validation (150 points)**:
+- Bulkification (25 pts)
+- Security (25 pts)
+- Testing (25 pts)
+- Architecture (20 pts)
+- Clean Code (20 pts)
+- Error Handling (15 pts)
+- Performance (10 pts)
+- Documentation (10 pts)
 
-### 📦 Products
-| Skill | Description | Status |
-|-------|-------------|--------|
-| `sf-product-datacloud` | Unified profiles, segments | 📋 Planned |
-| `sf-product-omnistudio` | FlexCards, DataRaptors | 📋 Planned |
+## 📦 Plugin Commands
 
-### ☁️ Clouds
-| Skill | Description | Status |
-|-------|-------------|--------|
-| `sf-cloud-sales` | Opportunities, Quotes, Forecasting | 📋 Planned |
-| `sf-cloud-service` | Cases, Omni-Channel, Knowledge | 📋 Planned |
-| `sf-cloud-experience` | Communities, Portals | 📋 Planned |
+| Command | Description |
+|---------|-------------|
+| `/plugin install github:Jaganpro/sf-skills` | Install all skills |
+| `/plugin install github:Jaganpro/sf-skills/sf-flow-builder` | Install single skill |
+| `/plugin update sf-skills` | Update to latest version |
+| `/plugin uninstall sf-skills` | Remove the plugin |
+| `/plugin list` | List installed plugins |
 
-### 🏢 Industries
-| Skill | Description | Status |
-|-------|-------------|--------|
-| `sf-industry-healthcare` | FHIR, Care Plans, Compliance | 📋 Planned |
-| `sf-industry-finserv` | KYC, AML, Wealth Management | 📋 Planned |
-| `sf-industry-revenue` | CPQ, Billing, Revenue Lifecycle | 📋 Planned |
+## 🔧 Prerequisites
 
-**Total: 22 skills** (4 live, 18 planned)
+- **Claude Code** (latest version)
+- **Salesforce CLI** v2.x (`sf` command, not legacy `sfdx`)
+- **Python 3.8+** (optional, for validation hooks)
 
 ## Usage Examples
 
@@ -110,6 +139,7 @@ sf-industry-{name}        # Industries (healthcare, finserv)
 ```
 "Create a screen flow for account creation with validation"
 "Build a record-triggered flow for opportunity stage changes"
+"Generate a scheduled flow for data cleanup"
 ```
 
 ### Deployment
@@ -123,40 +153,29 @@ sf-industry-{name}        # Industries (healthcare, finserv)
 "Create a new Claude Code skill for code analysis"
 ```
 
-## Plugin Commands
-
-| Command | Description |
-|---------|-------------|
-| `/plugin install github:Jaganpro/sf-skills` | Install from GitHub |
-| `/plugin update sf-skills` | Update to latest version |
-| `/plugin uninstall sf-skills` | Remove the plugin |
-| `/plugin list` | List installed plugins |
-
-## Prerequisites
-
-- **Claude Code** (latest version)
-- **Salesforce CLI** v2.x (`sf` command)
-- **Python 3.8+** (optional, for validators)
-
 ## What's Included
 
-### sf-apex
-- 15 best practice categories (bulkification, security, testing, SOLID, etc.)
-- 8-category validation scoring system (0-150 points)
-- Trigger Actions Framework integration
-- 9 production-ready templates
-- Code review checklist
-
 ### sf-flow-builder
-- Flow XML generation with API 62.0
-- Strict validation and scoring
-- Multiple flow type support (Screen, Record-Triggered, Scheduled, etc.)
+- Flow XML generation with API 62.0 (Winter '26)
+- 7 flow type templates (Screen, Record-Triggered, Scheduled, etc.)
+- 6 reusable subflow patterns
+- Strict validation with 110-point scoring
+- Auto-Layout support (locationX/Y = 0)
 - Integration with sf-deployment
 
+### sf-apex
+- 150-point scoring across 8 categories
+- Trigger Actions Framework (TAF) enforcement
+- 9 production-ready templates
+- SOLID principles validation
+- Security best practices (WITH USER_MODE, FLS)
+- Modern Apex features (null coalescing, safe navigation)
+
 ### sf-deployment
-- Modern `sf` CLI v2 commands
-- Dry-run validation before deployment
-- Test execution and coverage reporting
+- Modern `sf` CLI v2 commands (not legacy sfdx)
+- Dry-run validation (`--dry-run`) before deployment
+- Test execution with coverage reporting
+- Quick deploy for validated changesets
 - CI/CD pipeline support
 
 ### skill-builder
@@ -164,13 +183,78 @@ sf-industry-{name}        # Industries (healthcare, finserv)
 - YAML frontmatter validation
 - Bulk skill validation
 - Dependency management
+- Interactive terminal editor
+
+## Roadmap
+
+### Naming Convention
+```
+sf-{capability}           # Cross-cutting (apex, flow, admin)
+sf-ai-{name}              # AI features (agentforce, copilot)
+sf-product-{name}         # Products (datacloud, omnistudio)
+sf-cloud-{name}           # Clouds (sales, service)
+sf-industry-{name}        # Industries (healthcare, finserv)
+```
+
+### 🔧 Cross-Cutting Skills (Planned)
+| Skill | Description |
+|-------|-------------|
+| `sf-admin` | Objects, fields, layouts |
+| `sf-security` | Profiles, permissions, sharing |
+| `sf-integration` | REST, SOAP, Platform Events |
+| `sf-testing` | Test strategy, mocking, coverage |
+| `sf-debugging` | Debug logs, Apex replay |
+
+### 🤖 AI & Automation (Planned)
+| Skill | Description |
+|-------|-------------|
+| `sf-ai-agentforce` | Agent Studio, Topics, Actions |
+| `sf-ai-copilot` | Einstein Copilot, Prompts |
+
+### 📦 Products (Planned)
+| Skill | Description |
+|-------|-------------|
+| `sf-product-datacloud` | Unified profiles, segments |
+| `sf-product-omnistudio` | FlexCards, DataRaptors |
+
+## Repository Structure
+
+```
+sf-skills/
+├── .claude-plugin/           # Meta-plugin manifest (installs all)
+│   ├── plugin.json
+│   └── marketplace.json
+├── sf-flow-builder/          # Flow skill (standalone plugin)
+│   ├── .claude-plugin/
+│   ├── hooks/scripts/        # Flow validators
+│   ├── skills/sf-flow-builder/SKILL.md
+│   ├── templates/
+│   └── docs/
+├── sf-apex/                  # Apex skill (standalone plugin)
+│   ├── .claude-plugin/
+│   ├── hooks/scripts/        # Apex validators
+│   ├── skills/sf-apex/SKILL.md
+│   └── templates/
+├── sf-deployment/            # Deployment skill (standalone plugin)
+│   ├── .claude-plugin/
+│   ├── skills/sf-deployment/SKILL.md
+│   └── templates/
+└── skill-builder/            # Skill wizard (standalone plugin)
+    ├── .claude-plugin/
+    ├── hooks/scripts/        # SKILL.md validator
+    ├── skills/skill-builder/SKILL.md
+    └── scripts/
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Open a Pull Request
+4. Test with `/plugin install ./your-skill`
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## Issues & Support
 
