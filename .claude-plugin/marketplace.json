@@ -10,11 +10,18 @@
   },
   "plugins": [
     {
-      "name": "sf-skills",
-      "description": "Complete Salesforce suite - installs all skills (Flow, Apex, Deployment, Skill Builder)",
-      "source": "./",
+      "name": "sf-deployment",
+      "description": "Salesforce DevOps automation using sf CLI v2",
+      "source": "./sf-deployment",
       "version": "2.0.0",
-      "keywords": ["salesforce", "apex", "flow", "devops", "bundle"]
+      "keywords": ["salesforce", "deployment", "devops"]
+    },
+    {
+      "name": "skill-builder",
+      "description": "Interactive wizard for creating Claude Code skills",
+      "source": "./skill-builder",
+      "version": "2.0.0",
+      "keywords": ["claude-code", "skills", "wizard"]
     },
     {
       "name": "sf-flow-builder",
@@ -29,20 +36,6 @@
       "source": "./sf-apex",
       "version": "1.0.0",
       "keywords": ["salesforce", "apex", "trigger"]
-    },
-    {
-      "name": "sf-deployment",
-      "description": "Salesforce DevOps automation using sf CLI v2",
-      "source": "./sf-deployment",
-      "version": "2.0.0",
-      "keywords": ["salesforce", "deployment", "devops"]
-    },
-    {
-      "name": "skill-builder",
-      "description": "Interactive wizard for creating Claude Code skills",
-      "source": "./skill-builder",
-      "version": "2.0.0",
-      "keywords": ["claude-code", "skills", "wizard"]
     }
   ]
 }
