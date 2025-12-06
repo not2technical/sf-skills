@@ -1,0 +1,20 @@
+{
+  "name": "sf-skills-marketplace",
+  "description": "Salesforce development skills for Claude Code",
+  "owner": {
+    "name": "Jag Valaiyapathy",
+    "url": "https://github.com/Jaganpro"
+  },
+  "metadata": {
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "sf-skills",
+      "description": "Salesforce development skills - Apex, Flow, DevOps automation",
+      "source": "..",
+      "version": "1.0.0",
+      "keywords": ["salesforce", "apex", "flow", "devops"]
+    }
+  ]
+}
