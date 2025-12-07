@@ -66,40 +66,34 @@ sf-apex/
 
 ## 🚀 Installation
 
-First, add the marketplace to Claude Code:
+### Quick Install (Recommended)
+
+```bash
+# Add the marketplace
+/plugin marketplace add Jaganpro/sf-skills
+
+# Install all Salesforce skills
+/plugin install sf-skills@sf-skills
+```
+
+### Alternative: Browse and Install
 
 ```bash
 /plugin marketplace add Jaganpro/sf-skills
 ```
 
-Then install only the skills you need:
+Then:
+1. Select `Browse and install plugins`
+2. Select `sf-skills`
+3. Select `sf-skills` bundle
+4. Select `Install now`
 
-```bash
-# Flow development
-/plugin install sf-flow-builder@sf-skills-marketplace
-
-# Apex development
-/plugin install sf-apex@sf-skills-marketplace
-
-# Deployment automation
-/plugin install sf-deployment@sf-skills-marketplace
-
-# Skill creation wizard
-/plugin install skill-builder@sf-skills-marketplace
-```
-
-### Local Development Install
+### Local Development
 
 ```bash
 git clone https://github.com/Jaganpro/sf-skills.git
 cd sf-skills
-
-# Install all skills
 /plugin install .
-
-# Or add as local marketplace, then install individually
-/plugin marketplace add .
-/plugin install sf-flow-builder@sf-skills-marketplace
 ```
 
 ## 🔗 Skill Dependencies

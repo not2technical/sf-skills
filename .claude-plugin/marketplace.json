@@ -1,5 +1,5 @@
 {
-  "name": "sf-skills-marketplace",
+  "name": "sf-skills",
   "description": "Salesforce development skills for Claude Code",
   "owner": {
     "name": "Jag Valaiyapathy",
@@ -10,32 +10,15 @@
   },
   "plugins": [
     {
-      "name": "sf-deployment",
-      "description": "Salesforce DevOps automation using sf CLI v2",
-      "source": "./sf-deployment",
+      "name": "sf-skills",
+      "description": "Complete Salesforce development suite - Apex, Flow, Deployment, and Skill Builder",
       "version": "2.0.0",
-      "keywords": ["salesforce", "deployment", "devops"]
-    },
-    {
-      "name": "skill-builder",
-      "description": "Interactive wizard for creating Claude Code skills",
-      "source": "./skill-builder",
-      "version": "2.0.0",
-      "keywords": ["claude-code", "skills", "wizard"]
-    },
-    {
-      "name": "sf-flow-builder",
-      "description": "Salesforce Flow creation and validation with 110-point scoring",
-      "source": "./sf-flow-builder",
-      "version": "2.0.0",
-      "keywords": ["salesforce", "flow", "automation"]
-    },
-    {
-      "name": "sf-apex",
-      "description": "Apex code generation and review with 150-point scoring and TAF patterns",
-      "source": "./sf-apex",
-      "version": "1.0.0",
-      "keywords": ["salesforce", "apex", "trigger"]
+      "skills": [
+        { "source": "./sf-apex" },
+        { "source": "./sf-flow-builder" },
+        { "source": "./sf-deployment" },
+        { "source": "./skill-builder" }
+      ]
     }
   ]
 }
