@@ -136,12 +136,12 @@ flowchart TB
     style deploy fill:#10b981,stroke:#059669,color:#fff
     style skillbuilder fill:#64748b,stroke:#475569,color:#fff
 
-    style ai fill:#fdf2f8,stroke:#ec4899,stroke-width:2px
-    style integration fill:#fff7ed,stroke:#f97316,stroke-width:2px
-    style development fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px
-    style foundation fill:#ecfeff,stroke:#06b6d4,stroke-width:2px
-    style devops fill:#ecfdf5,stroke:#10b981,stroke-width:2px
-    style tooling fill:#f8fafc,stroke:#64748b,stroke-width:2px
+    style ai fill:transparent,stroke:#ec4899,stroke-dasharray:5
+    style integration fill:transparent,stroke:#f97316,stroke-dasharray:5
+    style development fill:transparent,stroke:#8b5cf6,stroke-dasharray:5
+    style foundation fill:transparent,stroke:#06b6d4,stroke-dasharray:5
+    style devops fill:transparent,stroke:#10b981,stroke-dasharray:5
+    style tooling fill:transparent,stroke:#64748b,stroke-dasharray:5
 ```
 
 ## 🔌 Plugin Features
