@@ -23,6 +23,12 @@ There are **two deployment methods** with **different capabilities**:
 | Variables without defaults | ✅ Supported | ❌ Requires default value |
 | API Version | v65.0+ required | v64.0+ |
 
+**Why the difference?** These methods correspond to two authoring experiences:
+- **Script View** (GenAiPlannerBundle): Full Agent Script syntax with utility actions (transition, set variables, escalate) inherent to the script
+- **Canvas/Builder View** (AiAuthoringBundle): Low-code visual builder where utility actions are not yet available in the @-mention resource picker
+
+Salesforce is working on feature parity - future releases will add flow actions, utility actions, and variable management to the Canvas view.
+
 ---
 
 ### AiAuthoringBundle (Visible in Agentforce Studio)

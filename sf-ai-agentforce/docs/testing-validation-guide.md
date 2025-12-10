@@ -22,6 +22,24 @@ There are **two ways** to deploy Agentforce agents, each with **different capabi
 - **Need visible agents in Agentforce Studio?** → Use AiAuthoringBundle (but limited features)
 - **Need flow actions or escalation?** → Use GenAiPlannerBundle (but not visible in UI)
 
+### Why Do These Limitations Exist?
+
+The two deployment methods correspond to **two different authoring experiences**:
+
+| Aspect | Script View | Canvas/Builder View |
+|--------|-------------|---------------------|
+| **Deployment** | GenAiPlannerBundle | AiAuthoringBundle |
+| **Experience** | Full Agent Script syntax | Low-code visual builder |
+| **Utility Actions** | Inherent to script (transition, set variables, escalate) | Not yet in @-mention resource picker |
+| **Flow Actions** | Full support with `flow://` targets | Not yet integrated |
+| **Variable Management** | Via Script view only | Low-code UI coming soon |
+
+**Key Understanding:**
+- Agent Script supports built-in **utility actions** (transition, set variables, escalate) that are **inherent to the script** but are NOT yet available in the Canvas view's @-mention resource picker
+- This means these features can **only be added directly via Script view** (GenAiPlannerBundle)
+- Salesforce is actively working on feature parity between the two experiences
+- Future releases will add utility actions, flow actions, and variable management to the Canvas/Builder view
+
 ---
 
 ### 1. Metadata API (GenAiPlannerBundle)
