@@ -27,10 +27,11 @@ This returns:
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0',
-  'primaryTextColor': '#032D60',
-  'lineColor': '#706E6B',
-  'tertiaryColor': '#f0f0f0'
+  'primaryColor': '#a5f3fc',
+  'primaryTextColor': '#1f2937',
+  'primaryBorderColor': '#0e7490',
+  'lineColor': '#334155',
+  'tertiaryColor': '#f8fafc'
 }}}%%
 erDiagram
     Account ||--o{ Contact : "has many"
@@ -239,6 +240,13 @@ erDiagram
 ## Relationship Types
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#a5f3fc',
+  'primaryTextColor': '#1f2937',
+  'primaryBorderColor': '#0e7490',
+  'lineColor': '#334155',
+  'tertiaryColor': '#f8fafc'
+}}}%%
 erDiagram
     %% Master-Detail (cascade delete)
     Parent ||--o{ Child_MasterDetail : "owns (MD)"
@@ -280,6 +288,13 @@ erDiagram
 ## Custom Object Example
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#a5f3fc',
+  'primaryTextColor': '#1f2937',
+  'primaryBorderColor': '#0e7490',
+  'lineColor': '#334155',
+  'tertiaryColor': '#f8fafc'
+}}}%%
 erDiagram
     Account ||--o{ Invoice__c : "has many"
     Invoice__c ||--o{ Invoice_Line_Item__c : "contains"

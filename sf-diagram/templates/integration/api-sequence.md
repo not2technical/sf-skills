@@ -12,24 +12,25 @@ Sequence diagram template for visualizing Salesforce integration patterns with e
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60',
-  'labelBoxBkgColor': '#FF6D00',
-  'labelTextColor': '#ffffff',
-  'noteBkgColor': '#f0f0f0',
-  'noteTextColor': '#032D60'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant T as 🔄 Trigger/<br/>Flow
         participant Q as ⚡ Queueable
         participant NC as 🔐 Named<br/>Credential
     end
 
-    box rgb(240,255,240) External System
+    box rgba(254,215,170,0.3) EXTERNAL SYSTEM
         participant API as 🏭 External<br/>API
     end
 
@@ -83,19 +84,23 @@ sequenceDiagram
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60',
-  'labelBoxBkgColor': '#FF6D00'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(240,255,240) External System
+    box rgba(254,215,170,0.3) EXTERNAL SYSTEM
         participant EXT as 🏭 External<br/>System
     end
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant GW as 🌐 API Gateway<br/>(REST Resource)
         participant SVC as ⚙️ Service<br/>Class
         participant DB as 💾 Database
@@ -150,24 +155,28 @@ sequenceDiagram
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60',
-  'labelBoxBkgColor': '#FF6D00'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(255,240,230) Salesforce Org A
+    box rgba(167,243,208,0.3) SALESFORCE ORG A
         participant T as 🔄 Trigger
         participant PE as 📢 Platform<br/>Event
     end
 
-    box rgb(230,240,255) Event Bus
+    box rgba(165,243,252,0.3) EVENT BUS
         participant EB as 🚌 Salesforce<br/>Event Bus
     end
 
-    box rgb(240,255,240) External System
+    box rgba(254,215,170,0.3) EXTERNAL SYSTEM
         participant CL as 🔌 CometD<br/>Client
         participant API as 🏭 Backend<br/>Service
     end
@@ -244,6 +253,12 @@ sequenceDiagram
 
 ### 1. Request-Response (Sync)
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155'
+}}}%%
 sequenceDiagram
     participant SF as Salesforce
     participant EXT as External API
@@ -253,6 +268,12 @@ sequenceDiagram
 
 ### 2. Fire-and-Forget (Async)
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155'
+}}}%%
 sequenceDiagram
     participant SF as Salesforce
     participant Q as Queue
@@ -263,6 +284,12 @@ sequenceDiagram
 
 ### 3. Pub/Sub (Event-Driven)
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155'
+}}}%%
 sequenceDiagram
     participant PUB as Publisher
     participant BUS as Event Bus
@@ -273,6 +300,12 @@ sequenceDiagram
 
 ### 4. Batch Sync
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155'
+}}}%%
 sequenceDiagram
     participant SCH as Scheduler
     participant BAT as Batch Job
@@ -296,6 +329,15 @@ sequenceDiagram
 ## Error Handling Patterns
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937'
+}}}%%
 sequenceDiagram
     participant SF as Salesforce
     participant API as External API

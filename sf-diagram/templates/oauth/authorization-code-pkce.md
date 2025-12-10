@@ -12,23 +12,24 @@ OAuth 2.0 Authorization Code flow with Proof Key for Code Exchange (PKCE) for pu
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60',
-  'labelBoxBkgColor': '#FF6D00',
-  'labelTextColor': '#ffffff',
-  'noteBkgColor': '#f0f0f0',
-  'noteTextColor': '#032D60'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(230,247,255) User Device
+    box rgba(165,243,252,0.3) USER DEVICE
         participant U as 👤 User
         participant App as 📱 Mobile App<br/>or SPA
     end
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant SF as ☁️ Salesforce<br/>Authorization Server
     end
 

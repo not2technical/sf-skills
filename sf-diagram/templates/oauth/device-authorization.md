@@ -13,27 +13,28 @@ OAuth 2.0 Device Authorization Grant for input-constrained devices without brows
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60',
-  'labelBoxBkgColor': '#FF6D00',
-  'labelTextColor': '#ffffff',
-  'noteBkgColor': '#f0f0f0',
-  'noteTextColor': '#032D60'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(230,247,255) User
+    box rgba(165,243,252,0.3) USER
         participant U as 👤 User
         participant B as 🌐 Browser<br/>(on phone/computer)
     end
 
-    box rgb(240,240,255) Device
+    box rgba(221,214,254,0.3) DEVICE
         participant D as 📺 Device<br/>(CLI, TV, IoT)
     end
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant SF as ☁️ Salesforce<br/>Authorization Server
     end
 

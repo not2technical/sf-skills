@@ -16,19 +16,24 @@ Real-world examples of using the sf-diagram skill.
 #### Mermaid Diagram
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(240,240,255) CI/CD Pipeline
+    box rgba(221,214,254,0.3) CI/CD PIPELINE
         participant GH as 🔧 GitHub Actions
         participant K as 🔐 Secrets Manager
     end
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant SF as ☁️ Salesforce
     end
 
@@ -98,8 +103,11 @@ Score: 72/80 ⭐⭐⭐⭐⭐ Excellent
 #### Mermaid Diagram
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#00A1E0',
-  'lineColor': '#706E6B'
+  'primaryColor': '#a5f3fc',
+  'primaryTextColor': '#1f2937',
+  'primaryBorderColor': '#0e7490',
+  'lineColor': '#334155',
+  'tertiaryColor': '#f8fafc'
 }}}%%
 erDiagram
     Account ||--o{ Invoice__c : "billed to"
@@ -228,23 +236,28 @@ Score: 74/80 ⭐⭐⭐⭐⭐ Excellent
 #### Mermaid Diagram
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
-  'actorBkg': '#00A1E0',
-  'actorTextColor': '#ffffff',
-  'signalColor': '#032D60'
+  'actorBkg': '#ddd6fe',
+  'actorTextColor': '#1f2937',
+  'actorBorder': '#6d28d9',
+  'signalColor': '#334155',
+  'signalTextColor': '#1f2937',
+  'noteBkgColor': '#f8fafc',
+  'noteTextColor': '#1f2937',
+  'noteBorderColor': '#334155'
 }}}%%
 sequenceDiagram
     autonumber
 
-    box rgb(255,240,230) Salesforce
+    box rgba(167,243,208,0.3) SALESFORCE
         participant T as 🔄 Order Trigger
         participant PE as 📢 Order_Sync__e
     end
 
-    box rgb(230,247,255) Integration
+    box rgba(254,215,170,0.3) INTEGRATION
         participant MW as 🔄 MuleSoft
     end
 
-    box rgb(240,255,240) SAP
+    box rgba(165,243,252,0.3) SAP
         participant SAP as 🏭 SAP S/4HANA
     end
 

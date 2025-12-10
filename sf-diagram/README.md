@@ -73,16 +73,16 @@ Or install via plugin:
 
 ## Color Palette
 
-CloudSundial-inspired, accessibility-focused colors:
+Tailwind-inspired pastel colors with dark borders (see [docs/color-palette.md](docs/color-palette.md)):
 
-| Component | Color | Hex |
-|-----------|-------|-----|
-| User/Browser | Teal | `#00A1E0` |
-| Application | Navy | `#032D60` |
-| Salesforce | Orange | `#FF6D00` |
-| External System | Green | `#04844B` |
-| Success | Green | `#2E844A` |
-| Error | Red | `#EA001E` |
+| Component | Fill (200) | Stroke (700+) |
+|-----------|------------|---------------|
+| AI & Agents | `#fbcfe8` | `#be185d` |
+| Integration | `#fed7aa` | `#c2410c` |
+| Development | `#ddd6fe` | `#6d28d9` |
+| Metadata | `#a5f3fc` | `#0e7490` |
+| Data | `#fde68a` | `#b45309` |
+| Deploy | `#a7f3d0` | `#047857` |
 
 ## Example Output
 
