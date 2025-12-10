@@ -2,11 +2,44 @@
 
 This guide documents tested Agent Script patterns and common deployment issues based on systematic validation testing (December 2025).
 
+## Deployment Methods
+
+There are **two ways** to deploy Agentforce agents:
+
+### 1. Metadata API (GenAiPlannerBundle)
+
+Uses standard `sf project deploy start` with `genAiPlannerBundles/` directory:
+
+```
+force-app/main/default/genAiPlannerBundles/
+└── My_Agent/
+    ├── My_Agent.genAiPlannerBundle           # XML manifest
+    └── agentScript/
+        └── My_Agent_definition.agent         # Agent Script file
+```
+
+**Requirements:**
+- `sourceApiVersion: "65.0"` in sfdx-project.json (v65+ required!)
+- XML bundle file + Agent Script file in `agentScript/` subfolder
+
+### 2. Agent Builder DX (authoring-bundle)
+
+Uses `sf agent publish authoring-bundle` with `aiAuthoringBundles/` directory:
+
+```
+force-app/main/default/aiAuthoringBundles/
+└── My_Agent/
+    ├── My_Agent.bundle-meta.xml
+    └── My_Agent.agent
+```
+
+---
+
 ## Test Matrix
 
 | Level | Complexity | Features Tested | Status |
 |-------|------------|-----------------|--------|
-| 1 | Basic | system, config, topics, transitions | ✅ Verified |
+| 1 | Basic | system, config, single topic | ✅ Verified |
 | 2 | Variables | mutable, linked, language block | ✅ Verified |
 | 3 | Actions | flow:// targets, inputs/outputs | ✅ Verified |
 | 4 | Multi-topic | topic routing, conditional transitions | ✅ Verified |
@@ -225,10 +258,15 @@ inputs:
 
 Before running `sf agent publish authoring-bundle`:
 
-### Files
-- [ ] `.agent` file exists (not `.agentscript`)
+### Files (Metadata API - GenAiPlannerBundle)
+- [ ] `.genAiPlannerBundle` XML file exists
+- [ ] `.agent` file in `agentScript/` subfolder
+- [ ] Both in `force-app/main/default/genAiPlannerBundles/[AgentName]/`
+- [ ] `sourceApiVersion: "65.0"` or higher in sfdx-project.json
+
+### Files (Agent Builder DX - authoring-bundle)
 - [ ] `.bundle-meta.xml` file exists alongside `.agent`
-- [ ] Both files in `force-app/main/default/aiAuthoringBundles/[AgentName]/`
+- [ ] Both in `force-app/main/default/aiAuthoringBundles/[AgentName]/`
 
 ### Syntax
 - [ ] 4-space indentation (not tabs, not 3 spaces)
@@ -240,7 +278,7 @@ Before running `sf agent publish authoring-bundle`:
 - [ ] No reserved words as input/output names
 
 ### Dependencies
-- [ ] Target org has API v64.0+
+- [ ] Target org has API v64.0+ (v65.0+ for GenAiPlannerBundle deploy)
 - [ ] All Flows referenced by `flow://` are deployed
 - [ ] All Apex classes referenced by Flows are deployed
 - [ ] `default_agent_user` exists in org with Agentforce permissions
@@ -257,6 +295,21 @@ Before running `sf agent publish authoring-bundle`:
 
 ## CLI Commands Quick Reference
 
+### Metadata API Deployment (GenAiPlannerBundle)
+
+```bash
+# Deploy agent using standard metadata deploy
+sf project deploy start --source-dir force-app/main/default/genAiPlannerBundles/[AgentName] --target-org [alias]
+
+# Deploy all agent bundles
+sf project deploy start --metadata GenAiPlannerBundle --target-org [alias]
+
+# Retrieve agent from org
+sf project retrieve start --metadata "GenAiPlannerBundle:[AgentName]" --target-org [alias]
+```
+
+### Agent Builder DX (authoring-bundle)
+
 ```bash
 # Validate before publish (optional)
 sf agent validate authoring-bundle --api-name [AgentName] --target-org [alias]
@@ -269,10 +322,17 @@ sf org open agent --api-name [AgentName] --target-org [alias]
 
 # Activate agent
 sf agent activate --api-name [AgentName] --target-org [alias]
+```
 
+### Common Commands
+
+```bash
 # Deploy dependencies first
 sf project deploy start --metadata Flow --target-org [alias]
 sf project deploy start --metadata ApexClass --target-org [alias]
+
+# List agents in org
+sf org list metadata --metadata-type GenAiPlannerBundle --target-org [alias]
 ```
 
 ---
