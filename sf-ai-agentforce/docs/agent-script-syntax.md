@@ -311,9 +311,41 @@ topic orders:
 | `number` | Integers or decimals | `0` | `42`, `99.99` |
 | `boolean` | True/False | `False` | `True`, `False` |
 | `list[type]` | Array of values | `[]` | `list[string]` |
-| `object` | Complex object | `{}` | Custom structure |
+| `object` | Complex object with Lightning type | `{}` | See advanced syntax below |
 
 **Note**: Boolean values must be capitalized: `True`, `False`
+
+### Advanced `object` Type with Lightning Data Types (Tested Dec 2025)
+
+The `object` type enables fine-grained control over action inputs/outputs using Lightning data types:
+
+```agentscript
+inputs:
+   order_number: object
+      description: "The Order Number"
+      label: "order_number"
+      is_required: False
+      is_user_input: False
+      complex_data_type_name: "lightning__textType"
+outputs:
+   order_id: object
+      description: "The Record ID"
+      label: "order_id"
+      complex_data_type_name: "lightning__textType"
+      filter_from_agent: False
+      is_used_by_planner: True
+      is_displayable: False
+```
+
+**Lightning Data Types (`complex_data_type_name`):**
+- `lightning__textType` - Text/String values
+- `lightning__numberType` - Numeric values
+- `lightning__booleanType` - Boolean True/False
+- `lightning__dateTimeStringType` - DateTime as string
+
+**Input Attributes:** `is_required`, `is_user_input`, `label`, `complex_data_type_name`
+
+**Output Attributes:** `filter_from_agent`, `is_used_by_planner`, `is_displayable`, `complex_data_type_name`
 
 ### Data Type Mappings with Flow (Tested Dec 2025)
 

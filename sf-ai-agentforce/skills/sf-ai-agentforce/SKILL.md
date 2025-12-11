@@ -372,6 +372,77 @@ If Flow defines 6 input variables but Agent Script only provides 4, publish fail
    Result: Success
 ```
 
+### Advanced Action Fields with `object` Type (Tested Dec 2025)
+
+For fine-grained control over action behavior, use the `object` type with `complex_data_type_name` and advanced field attributes:
+
+```agentscript
+actions:
+   lookup_order:
+      description: "Retrieve order details for a given Order Number."
+      inputs:
+         order_number: object
+            description: "The Order Number the user has provided"
+            label: "order_number"
+            is_required: False
+            is_user_input: False
+            complex_data_type_name: "lightning__textType"
+      outputs:
+         order_id: object
+            description: "The Record ID of the Order"
+            label: "order_id"
+            complex_data_type_name: "lightning__textType"
+            filter_from_agent: False
+            is_used_by_planner: True
+            is_displayable: False
+         order_is_current: object
+            description: "Whether the order is current"
+            label: "order_is_current"
+            complex_data_type_name: "lightning__booleanType"
+            filter_from_agent: False
+            is_used_by_planner: True
+            is_displayable: False
+      target: "flow://lookup_order"
+      label: "Lookup Order"
+      require_user_confirmation: False
+      include_in_progress_indicator: False
+```
+
+**Lightning Data Types (`complex_data_type_name`):**
+
+| Type | Description |
+|------|-------------|
+| `lightning__textType` | Text/String values |
+| `lightning__numberType` | Numeric values |
+| `lightning__booleanType` | Boolean True/False |
+| `lightning__dateTimeStringType` | DateTime as string |
+
+**Input Field Attributes:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `is_required` | Boolean | Whether the input must be provided |
+| `is_user_input` | Boolean | Whether the LLM should collect from user |
+| `label` | String | Display label for the field |
+| `complex_data_type_name` | String | Lightning data type mapping |
+
+**Output Field Attributes:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `filter_from_agent` | Boolean | Hide output from agent reasoning |
+| `is_used_by_planner` | Boolean | Whether planner uses this output |
+| `is_displayable` | Boolean | Show output to user |
+| `complex_data_type_name` | String | Lightning data type mapping |
+
+**Action-Level Attributes:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `label` | String | Display name for the action |
+| `require_user_confirmation` | Boolean | Ask user before executing |
+| `include_in_progress_indicator` | Boolean | Show progress during execution |
+
 ### Apex Actions in GenAiPlannerBundle
 
 **`apex://` targets work in GenAiPlannerBundle if the Apex class exists:**
