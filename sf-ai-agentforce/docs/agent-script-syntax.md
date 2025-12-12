@@ -156,21 +156,35 @@ topic farewell:
 
 ## Indentation Rules
 
-**CRITICAL**: Agent Script requires **3-space indentation**.
+**CRITICAL**: Agent Script is whitespace-sensitive (like Python/YAML). Use **CONSISTENT indentation** throughout.
+
+| Rule | Details |
+|------|---------|
+| **Spaces** | 2, 3, or 4 spaces all work |
+| **Tabs** | Tabs work if used consistently |
+| **Mixing** | ❌ NEVER mix tabs and spaces (causes parse errors) |
+| **Consistency** | All lines at same nesting level must use same indentation |
 
 ```agentscript
-# ✅ CORRECT - 3 spaces per level
+# ✅ CORRECT - consistent 3 spaces (recommended for readability)
 config:
    agent_name: "My_Agent"
    description: "Description"
 
-# ❌ WRONG - 4 spaces
+# ✅ ALSO CORRECT - consistent 2 spaces
+config:
+  agent_name: "My_Agent"
+  description: "Description"
+
+# ✅ ALSO CORRECT - consistent 4 spaces
 config:
     agent_name: "My_Agent"
+    description: "Description"
 
-# ❌ WRONG - tabs
+# ❌ WRONG - mixing tabs and spaces
 config:
-	agent_name: "My_Agent"
+	agent_name: "My_Agent"    # tab
+   description: "My agent"    # spaces - PARSE ERROR!
 ```
 
 ---
@@ -521,6 +535,44 @@ if @variables.name is None:
 
 if @variables.email is not None:
    | Email is available.
+```
+
+### Logical Operators
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `and` | Both conditions true | `@variables.a and @variables.b` |
+| `or` | At least one true | `@variables.x or @variables.y` |
+| `not` | Negation | `not @variables.flag` |
+
+```agentscript
+# Combine conditions with AND
+if @variables.verified == True and @variables.amount > 0:
+   | Processing verified request.
+
+# Check multiple conditions with OR
+if @variables.is_vip == True or @variables.loyalty_years > 5:
+   | Premium customer detected.
+
+# Negate a condition
+if not @variables.is_blocked:
+   | Access granted.
+```
+
+---
+
+## Comments
+
+Use the `#` symbol to add comments. Everything after `#` on a line is ignored.
+
+```agentscript
+# This is a comment - the parser ignores this line
+config:
+   agent_name: "My_Agent"    # Inline comment explaining the field
+   description: "A helpful agent"
+
+# Comments help document your agent script
+# Use them to explain complex logic
 ```
 
 ---

@@ -19,6 +19,14 @@ What do you need?
 │   └─► Use: bidirectional-routing.agent
 │       (store return address, specialist transitions back)
 │
+├─► Complex parameter passing to actions?
+│   └─► Use: advanced-input-bindings.agent
+│       (slot filling, variable binding, output chaining)
+│
+├─► Dynamic behavior based on user context?
+│   └─► Use: system-instruction-overrides.agent
+│       (tier-based, time-based, feature flag instructions)
+│
 └─► None of the above?
     └─► Start with: ../getting-started/hello-world.agent
 ```
@@ -100,6 +108,84 @@ return_with_results: @utils.transition to @topic.main_hub
 
 ---
 
+### 4. [advanced-input-bindings.agent](advanced-input-bindings.agent)
+
+**Purpose**: Master all parameter binding techniques for actions.
+
+**Use when**:
+- Learning different ways to pass values to actions
+- Complex multi-input action scenarios
+- Chaining outputs between multiple actions
+- Mixing LLM slot filling with stored state
+
+**Key syntax**:
+```agentscript
+reasoning:
+   actions:
+      # Slot filling: LLM extracts from conversation
+      lookup: @actions.get_order
+         with order_id=...
+
+      # Variable binding: Use stored state
+      bound: @actions.get_order
+         with order_id=@variables.current_order_id
+
+      # Output chaining: Use previous action's result
+      process: @actions.create_order
+         with items=...
+         set @variables.order_id = @outputs.order_id
+         run @actions.send_notification
+            with order_id=@outputs.order_id    # Chained output
+```
+
+**Binding Pattern Quick Reference**:
+| Pattern | Syntax | When to Use |
+|---------|--------|-------------|
+| Slot Filling | `with x=...` | LLM extracts from conversation |
+| Fixed Value | `with x="value"` | Always use a constant |
+| Variable | `with x=@variables.y` | Use stored state |
+| Output | `with x=@outputs.y` | Chain from previous action |
+
+---
+
+### 5. [system-instruction-overrides.agent](system-instruction-overrides.agent)
+
+**Purpose**: Dynamic agent behavior based on context (user tier, time, features).
+
+**Use when**:
+- Different behavior for different user segments (VIP vs standard)
+- Time-based changes (business hours vs after hours)
+- Feature flags controlling agent personality
+- A/B testing different conversation styles
+
+**Key syntax**:
+```agentscript
+# System block: Static base instructions
+system:
+   instructions: "You are a professional agent. Be helpful and courteous."
+
+# Topic reasoning: Dynamic overrides
+reasoning:
+   instructions: ->
+      if @variables.customer_tier == "vip":
+         | PRIORITY CUSTOMER - Provide white-glove service.
+         | You have authority to offer 20% discounts.
+
+      if @variables.business_hours == False:
+         | We are outside business hours.
+         | Complex issues should be logged for follow-up.
+
+      | Respond to the customer's inquiry.
+```
+
+**Override Strategy**:
+| Layer | Type | Best For |
+|-------|------|----------|
+| `system:` | Static | Guardrails, base personality |
+| `reasoning:` | Dynamic | Personalization, context-aware behavior |
+
+---
+
 ## Pattern Combinations
 
 These patterns can be combined:
@@ -119,6 +205,8 @@ lifecycle-events + action-callbacks
 | Action Callbacks | +5 pts | No nested run |
 | Lifecycle Events | +5 pts | Proper block placement |
 | Bidirectional | +5 pts | Return transitions |
+| Input Bindings | +5 pts | Proper binding patterns |
+| System Overrides | +5 pts | Static system, dynamic topics |
 
 ## Anti-Patterns to Avoid
 

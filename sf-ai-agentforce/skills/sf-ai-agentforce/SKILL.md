@@ -854,6 +854,23 @@ language:
    all_additional_locales: False
 ```
 
+### Connection Block (Optional)
+
+**Required for**: `@utils.escalate` to work with Omni-Channel for human handoff.
+
+```agentscript
+connection messaging:
+   outbound_route_type: "queue"
+   outbound_route_name: "Support_Queue"
+```
+
+| Property | Description |
+|----------|-------------|
+| `outbound_route_type` | Type of routing: `"queue"`, `"skill"`, or `"agent"` |
+| `outbound_route_name` | API name of the Omni-Channel queue, skill, or agent |
+
+**Note**: Without a connection block, `@utils.escalate` may not properly route to human agents. Configure this when building agents that need live agent escalation.
+
 ### Topic Blocks
 
 **Entry point topic** (required):
@@ -954,22 +971,84 @@ topic account_lookup:
 
 ### Action Invocation
 
+**Slot Filling with `...` (Ellipsis)**
+
+The `...` (ellipsis) syntax enables **LLM slot filling** - the agent automatically extracts parameter values from the conversation context.
+
 ```agentscript
 reasoning:
    actions:
-      # LLM fills inputs (...)
+      # SLOT FILLING: LLM extracts value from conversation
+      # If user says "Look up account 001ABC", the LLM fills account_id="001ABC"
       lookup: @actions.get_account
          with account_id=...
          set @variables.account_name = @outputs.account_name
 
-      # Fixed value
+      # FIXED VALUE: Always uses this specific value
       default_lookup: @actions.get_account
          with account_id="001XX000003NGFQ"
 
-      # Variable binding
+      # VARIABLE BINDING: Uses value from a variable
       bound_lookup: @actions.get_account
          with account_id=@variables.current_account_id
 ```
+
+**Input Binding Patterns:**
+
+| Pattern | Syntax | When to Use |
+|---------|--------|-------------|
+| **Slot Filling** | `with param=...` | LLM extracts from conversation |
+| **Fixed Value** | `with param="value"` | Always use a constant |
+| **Variable** | `with param=@variables.x` | Use stored state |
+| **Output** | `with param=@outputs.x` | Chain from previous action |
+
+**How Slot Filling Works:**
+1. User mentions a value in conversation (e.g., "Check order ORD-12345")
+2. LLM recognizes this matches an action's input description
+3. LLM automatically populates the `...` with the extracted value
+4. Action executes with the filled parameter
+
+### Deterministic vs Non-Deterministic Actions
+
+Agent Script supports two invocation methods with different behaviors:
+
+| Method | Syntax | Behavior |
+|--------|--------|----------|
+| **Deterministic** | `run @actions.x` | Always executes when code path is reached |
+| **Non-Deterministic** | `{!@actions.x}` in reasoning | LLM decides whether to execute |
+
+**Deterministic (Always Executes):**
+```agentscript
+# In before_reasoning, after_reasoning, or action callbacks
+before_reasoning:
+   run @actions.log_event           # ALWAYS runs
+      with event_type="turn_started"
+
+# In action callbacks
+process_order: @actions.create_order
+   run @actions.send_confirmation   # ALWAYS runs after create_order
+```
+
+**Non-Deterministic (LLM Chooses):**
+```agentscript
+# In reasoning instructions - LLM decides based on context
+reasoning:
+   instructions: ->
+      | Help the user with their order.
+      | Use {!@actions.get_order} to look up order details.
+      | Use {!@actions.update_order} if they want to modify it.
+
+   # Alternative: actions block - LLM chooses which to call
+   actions:
+      lookup: @actions.get_order
+         with order_id=...
+      update: @actions.update_order
+         with order_id=...
+```
+
+**When to Use Each:**
+- **Deterministic (`run`)**: Audit logging, required follow-ups, guaranteed side effects
+- **Non-Deterministic (actions block)**: User-driven choices, context-dependent operations
 
 ### Action Callbacks (Chaining)
 
@@ -1021,9 +1100,9 @@ topic conversation:
 - `before_reasoning`: Session initialization, turn counting, pre-validation, state setup
 - `after_reasoning`: Cleanup, analytics, audit logging, state updates
 
-### Variable Setting with @utils.setVariables
+### Variable Setting Utilities
 
-Set multiple variables directly using the utility action:
+**@utils.setVariables** - Set multiple variables at once:
 
 ```agentscript
 reasoning:
@@ -1032,6 +1111,24 @@ reasoning:
          with user_name=...
          with is_verified=True
 ```
+
+**@utils.set** - Set a single variable with LLM slot filling:
+
+```agentscript
+reasoning:
+   actions:
+      # LLM determines the value based on conversation context
+      capture_name: @utils.set
+         with user_name=...
+         description: "Extract the user's name from the conversation"
+```
+
+| Utility | Purpose | Use Case |
+|---------|---------|----------|
+| `@utils.setVariables` | Set multiple variables | Bulk state updates |
+| `@utils.set` | Set single variable with slot filling | LLM-driven data capture |
+
+**Note**: Both support slot filling (`...`) to let the LLM extract values from conversation.
 
 ### Topic Transitions
 
@@ -1085,11 +1182,27 @@ instructions: ->
 
 ### Operators
 
-| Type | Operators |
-|------|-----------|
-| Comparison | `==`, `!=`, `>`, `<`, `>=`, `<=` |
-| Math | `+`, `-` |
-| Null check | `is None`, `is not None` |
+| Type | Operators | Example |
+|------|-----------|---------|
+| Comparison | `==`, `!=`, `>`, `<`, `>=`, `<=` | `@variables.count == 10` |
+| Logical | `and`, `or`, `not` | `@variables.a and @variables.b` |
+| Math | `+`, `-` | `@variables.count + 1` |
+| Null check | `is`, `is not` | `@variables.value is None` |
+
+**Logical Operator Examples:**
+```agentscript
+# AND - both conditions must be true
+if @variables.verified == True and @variables.amount > 0:
+   | Processing your verified request.
+
+# OR - at least one condition must be true
+if @variables.is_vip == True or @variables.amount > 10000:
+   | You qualify for premium service.
+
+# NOT - negates the condition
+if not @variables.is_blocked:
+   | Access granted.
+```
 
 ### Template Expressions
 
