@@ -146,8 +146,54 @@ This agent MUST be invoked when the user wants to:
 
 ---
 
+## ⚡ Async Execution (Non-Blocking)
+
+This agent supports **background execution** for parallel deployments:
+
+### Blocking (Default)
+```
+Task(
+  subagent_type="sf-devops-architect",
+  prompt="Deploy to [org]"
+)
+# Waits for deployment to complete, returns results
+```
+
+### Non-Blocking (Background)
+```
+Task(
+  subagent_type="sf-devops-architect",
+  prompt="Deploy to [org]",
+  run_in_background=true    # ← Returns immediately!
+)
+# Returns agent ID immediately, deployment runs in background
+
+# Check status without waiting:
+TaskOutput(task_id="[agent-id]", block=false)
+
+# Wait for results when ready:
+TaskOutput(task_id="[agent-id]", block=true)
+```
+
+### Parallel Deployments to Multiple Orgs
+```
+# Launch all three simultaneously
+Task(..., prompt="Deploy to Dev", run_in_background=true)
+Task(..., prompt="Deploy to QA", run_in_background=true)
+Task(..., prompt="Deploy to UAT", run_in_background=true)
+
+# Continue other work while deployments run...
+
+# Collect results
+TaskOutput(task_id="dev-agent-id", block=true)
+TaskOutput(task_id="qa-agent-id", block=true)
+TaskOutput(task_id="uat-agent-id", block=true)
+```
+
+---
+
 ## Notes
 
-- **Async Support**: Can run in background with `run_in_background=true`
 - **Skill Dependency**: sf-deploy is auto-loaded via frontmatter
-- **No Direct CLI**: This agent does NOT execute sf CLI commands directly
+- **Async Verified**: Tested with parallel work during deployment
+- **Status Polling**: Use `block=false` for real-time progress checks

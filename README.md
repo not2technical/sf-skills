@@ -204,6 +204,40 @@ Task(subagent_type="sf-devops-architect", prompt="Deploy to [org]")
 
 The gateway ensures consistent validation, orchestration, and deployment workflows.
 
+### ⚡ Async Deployment (Non-Blocking)
+
+Run deployments in the background while continuing other work:
+
+```python
+# Launch deployment in background (returns immediately)
+Task(
+  subagent_type="sf-devops-architect",
+  prompt="Deploy to Production",
+  run_in_background=true    # ← Key parameter!
+)
+
+# Continue working while deployment runs...
+
+# Check status (non-blocking)
+TaskOutput(task_id="agent-id", block=false)
+
+# Wait for results when ready
+TaskOutput(task_id="agent-id", block=true)
+```
+
+**Parallel Deployments Example:**
+```python
+# Deploy to multiple orgs simultaneously
+Task(..., prompt="Deploy to Dev", run_in_background=true)
+Task(..., prompt="Deploy to QA", run_in_background=true)
+Task(..., prompt="Deploy to UAT", run_in_background=true)
+
+# Collect results later
+TaskOutput(task_id="dev-id", block=true)
+TaskOutput(task_id="qa-id", block=true)
+TaskOutput(task_id="uat-id", block=true)
+```
+
 ## 🔌 Plugin Features
 
 ### Automatic Validation Hooks
