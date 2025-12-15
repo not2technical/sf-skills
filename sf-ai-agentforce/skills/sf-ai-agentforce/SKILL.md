@@ -314,6 +314,31 @@ This will fail with "Internal Error, try again later" because the schema validat
 | **API Version** | API v64.0+ for AiAuthoringBundle, v65.0+ for GenAiPlannerBundle |
 | **All Inputs Required** | Agent Script must define ALL inputs that Flow expects (missing inputs = Internal Error) |
 
+### ⚠️ CRITICAL: Flow Validation Timing (Tested Dec 2025)
+
+**Flow existence is validated at DEPLOYMENT time, NOT during `sf agent validate`!**
+
+| Command | What It Checks | Flow Validation |
+|---------|----------------|-----------------|
+| `sf agent validate authoring-bundle` | Syntax only | ❌ Does NOT check if flows exist |
+| `sf project deploy start` | Full deployment | ✅ Validates flow existence |
+
+**This means:**
+- An agent can **PASS validation** with `sf agent validate authoring-bundle`
+- But **FAIL deployment** if the referenced flow doesn't exist in the org
+
+```bash
+# ✅ Passes - only checks Agent Script syntax
+sf agent validate authoring-bundle --api-name My_Agent --target-org MyOrg
+# Status: COMPLETED, Errors: 0
+
+# ❌ Fails - flow doesn't exist in org
+sf project deploy start --source-dir force-app/main/default/aiAuthoringBundles/My_Agent
+# Error: "We couldn't find the flow, prompt, or apex class: flow://Missing_Flow"
+```
+
+**Best Practice: Always deploy flows BEFORE deploying agents that reference them.**
+
 ### ⚠️ CRITICAL: Data Type Mappings (Tested Dec 2025)
 
 **Confirmed working data types between Agent Script and Flow:**

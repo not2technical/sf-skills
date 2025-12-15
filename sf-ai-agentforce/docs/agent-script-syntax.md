@@ -700,6 +700,21 @@ inputs:
 3. Flow variables marked "Available for input" / "Available for output"
 4. Flow must be deployed to org **BEFORE** agent publish
 
+**⚠️ Flow Validation Timing:**
+- `sf agent validate authoring-bundle` checks **syntax only** - does NOT verify flow exists
+- `sf project deploy start` validates flow existence at **deployment time**
+- Agent can PASS validation but FAIL deployment if flow is missing!
+
+```bash
+# ✅ Passes - only checks syntax
+sf agent validate authoring-bundle --api-name My_Agent
+# Status: COMPLETED, Errors: 0
+
+# ❌ Fails if flow doesn't exist
+sf project deploy start --source-dir .../My_Agent
+# Error: "We couldn't find the flow: flow://Missing_Flow"
+```
+
 ### Invoking Actions
 
 ```agentscript
