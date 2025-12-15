@@ -2229,6 +2229,9 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Connection `outbound_route_type`** | Invalid values cause validation errors | MUST be `"OmniChannelFlow"` - not `queue`/`skill`/`agent` |
 | **Connection `escalation_message`** | Missing field causes parse errors | REQUIRED when other connection fields are present |
 | **Connection OmniChannelFlow** | HTTP 404 at "Publish Agent" step | Referenced flow must exist in org or BotDefinition NOT created |
+| **Nested if statements** | Parse errors ("Missing required element", "Unexpected 'else'") | Use flat conditionals with `and` operators instead |
+| **Math operators (`+`, `-`)** | Works in set and conditions | `set @variables.x = @variables.x + 1` is valid |
+| **Action attributes** | `require_user_confirmation`, `include_in_progress_indicator`, `label` | Work in AiAuthoringBundle (validated Dec 2025) |
 
 ---
 

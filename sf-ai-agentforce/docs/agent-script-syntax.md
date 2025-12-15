@@ -624,6 +624,54 @@ if not @variables.is_blocked:
    | Access granted.
 ```
 
+### ⚠️ CRITICAL: Nested If Statements NOT Supported (Tested Dec 2025)
+
+**Nested if statements (if inside if) cause parse errors in AiAuthoringBundle!**
+
+```agentscript
+# ❌ WRONG - Nested if causes "Missing required element" and "Unexpected 'else'"
+if @variables.is_premium == True:
+   | User is premium.
+   if @variables.order_total > 1000:     # NESTED IF - FAILS!
+      | Large order.
+   else:
+      | Regular order.
+else:
+   | Standard user.
+
+# ✅ CORRECT - Use flat conditionals with 'and' operators
+if @variables.is_premium == True and @variables.order_total > 1000:
+   | Premium user with large order.
+if @variables.is_premium == True and @variables.order_total <= 1000:
+   | Premium user with regular order.
+if @variables.is_premium == False:
+   | Standard user.
+```
+
+### Math Operators (Tested Dec 2025)
+
+Math operators work in both `set` statements and conditions:
+
+```agentscript
+# ✅ Addition in set statement
+set @variables.counter = @variables.counter + 1
+
+# ✅ Subtraction in set statement
+set @variables.remaining = @variables.total - 100
+
+# ✅ Math in conditions
+if @variables.counter + 5 > 10:
+   | Counter plus 5 is greater than 10.
+
+if @variables.total - 50 < 0:
+   | Total minus 50 would be negative.
+```
+
+| Operator | Works in `set` | Works in `if` | Example |
+|----------|---------------|---------------|---------|
+| `+` | ✅ Yes | ✅ Yes | `set @variables.x = @variables.x + 1` |
+| `-` | ✅ Yes | ✅ Yes | `if @variables.total - 50 < 0:` |
+
 ---
 
 ## Comments
@@ -1172,6 +1220,7 @@ instructions: ->
 | **Unknown utils declaration type** | **`@utils.setVariables` or `@utils.set` in AiAuthoringBundle** | **Use `set @variables.x = ...` in instructions instead** |
 | **Invalid outbound_route_type** | **Connection block uses `queue`/`skill`/`agent`** | **Use `"OmniChannelFlow"` as the only valid value** |
 | **Missing escalation_message** | **Connection block missing required field** | **Add `escalation_message: "..."` to connection block** |
+| **Missing required element / Unexpected 'else'** | **Nested if statements (if inside if)** | **Use flat conditionals with `and` operators instead** |
 
 ---
 
@@ -1199,3 +1248,4 @@ instructions: ->
 | **Connection block with `outbound_route_type: "queue"`** | **Invalid value error** | **Use `"OmniChannelFlow"` only** |
 | **Connection block without `escalation_message`** | **Parse/validation error** | **Add required `escalation_message` field** |
 | **Connection block referencing non-existent flow** | **HTTP 404 at Publish Agent** | **Create OmniChannelFlow before publishing agent** |
+| **Nested if statements (if inside if)** | **Parse errors** | **Use flat conditionals with `and` operators** |
