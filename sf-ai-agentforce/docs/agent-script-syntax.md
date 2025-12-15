@@ -437,14 +437,37 @@ inputs:
 
 Use the `@` prefix to reference resources.
 
-| Resource | Syntax | Usage |
-|----------|--------|-------|
-| Variables | `@variables.name` | Access stored values |
-| Actions | `@actions.name` | Invoke defined actions |
-| Topics | `@topic.name` | Reference topics |
-| Outputs | `@outputs.field` | Action output values |
-| Utilities | `@utils.transition` | Built-in utilities |
-| Utilities | `@utils.escalate` | Escalate to human |
+| Resource | Syntax | Usage | AiAuthoringBundle |
+|----------|--------|-------|-------------------|
+| Variables | `@variables.name` | Access stored values | ✅ Supported |
+| Actions | `@actions.name` | Invoke defined actions | ✅ Supported |
+| Topics | `@topic.name` | Reference topics | ✅ Supported |
+| Outputs | `@outputs.field` | Action output values | ✅ Supported |
+| Utilities | `@utils.transition` | Built-in utilities | ✅ Supported |
+| Utilities | `@utils.escalate` | Escalate to human | ✅ Supported |
+| Utilities | `@utils.setVariables` | Set multiple variables | ❌ NOT Supported |
+| Utilities | `@utils.set` | Set single variable | ❌ NOT Supported |
+
+**⚠️ CRITICAL: `@utils.setVariables` and `@utils.set` are NOT supported in AiAuthoringBundle (Tested Dec 2025)**
+
+These utilities cause "Unknown utils declaration type" errors. Use the `set` keyword in instructions instead:
+
+```agentscript
+# ❌ WRONG - @utils.setVariables NOT supported in AiAuthoringBundle
+reasoning:
+   actions:
+      update_state: @utils.setVariables
+         with user_name=...
+         with is_verified=True
+
+# ✅ CORRECT - Use 'set' keyword in instructions
+reasoning:
+   instructions: ->
+      | Ask the user for their name.
+      set @variables.user_name = ...
+      | Verify the user.
+      set @variables.is_verified = True
+```
 
 ```agentscript
 # Variable reference
@@ -907,7 +930,8 @@ topic escalation:
       instructions: ->
          | Transfer the conversation to a human.
       actions:
-         escalate: @utils.escalate
+         # ⚠️ IMPORTANT: "escalate" is a reserved word - use "go_to_escalate" or similar
+         go_to_escalate: @utils.escalate
             description: "Escalate to a human agent"
 ```
 
@@ -921,6 +945,47 @@ reasoning:
 ⚠️ **CRITICAL**: The `with reason="..."` syntax is **ONLY supported in GenAiPlannerBundle**!
 - AiAuthoringBundle will fail with `SyntaxError: Unexpected 'with'` or `SyntaxError: Unexpected 'escalate'`
 - Use the basic `@utils.escalate` with `description:` for AiAuthoringBundle agents
+
+⚠️ **CRITICAL**: `escalate` is a **RESERVED WORD** - do NOT use as action name!
+- Using `escalate:` as action name causes `SyntaxError: Unexpected 'escalate'`
+- Use alternatives like `go_to_escalate:`, `transfer_to_human:`, `human_handoff:`
+
+### Connection Block (Required for Omni-Channel Escalation)
+
+**The connection block is REQUIRED for `@utils.escalate` to route to Omni-Channel.**
+
+```agentscript
+# ✅ CORRECT - Connection block for Omni-Channel routing
+connection messaging:
+   outbound_route_type: "OmniChannelFlow"
+   outbound_route_name: "Support_Queue_Flow"
+   escalation_message: "Transferring you to a human agent now..."
+```
+
+**⚠️ CRITICAL: Connection Block Requirements (Tested Dec 2025)**
+
+| Field | Required | Valid Values | Notes |
+|-------|----------|--------------|-------|
+| `outbound_route_type` | Yes | `"OmniChannelFlow"` only | ❌ `queue`, `skill`, `agent` NOT supported |
+| `outbound_route_name` | Yes | Flow API name | Must exist in org |
+| `escalation_message` | Yes | String message | Required when other fields present |
+
+**Common Errors:**
+- Using `outbound_route_type: "queue"` causes validation error - use `"OmniChannelFlow"`
+- Missing `escalation_message` causes parse/validation error
+- If referenced OmniChannelFlow doesn't exist in org, publish fails at "Publish Agent" step (BotDefinition NOT created)
+
+```agentscript
+# ❌ WRONG - "queue" not supported
+connection messaging:
+   outbound_route_type: "queue"
+   outbound_route_name: "Support_Queue"
+
+# ❌ WRONG - Missing escalation_message
+connection messaging:
+   outbound_route_type: "OmniChannelFlow"
+   outbound_route_name: "Support_Queue_Flow"
+```
 
 ---
 
@@ -1100,9 +1165,13 @@ instructions: ->
 | Missing space | `instructions:->` | Use `instructions: ->` |
 | **Internal Error, try again later** | **Flow variable names don't match** | **Ensure Agent Script input/output names EXACTLY match Flow variable API names** |
 | **ERROR_HTTP_404 during Retrieve Metadata** | **AiAuthoringBundle metadata not deployed** | **Run `sf project deploy start` after publish to deploy metadata** |
+| **ERROR_HTTP_404 during Publish Agent** | **OmniChannelFlow doesn't exist in org** | **Create the referenced OmniChannelFlow before publishing agent** |
 | SyntaxError: Unexpected 'with' | Escalate with reason in AiAuthoringBundle | Use basic `@utils.escalate` or GenAiPlannerBundle |
-| SyntaxError: Unexpected 'escalate' | Invalid escalation syntax in AiAuthoringBundle | Use GenAiPlannerBundle for `with reason=` syntax |
+| SyntaxError: Unexpected 'escalate' | `escalate` is reserved word OR invalid escalation syntax | Rename action to `go_to_escalate` or similar |
 | SyntaxError: Unexpected 'run' | `run` keyword in AiAuthoringBundle | Use GenAiPlannerBundle for action callbacks |
+| **Unknown utils declaration type** | **`@utils.setVariables` or `@utils.set` in AiAuthoringBundle** | **Use `set @variables.x = ...` in instructions instead** |
+| **Invalid outbound_route_type** | **Connection block uses `queue`/`skill`/`agent`** | **Use `"OmniChannelFlow"` as the only valid value** |
+| **Missing escalation_message** | **Connection block missing required field** | **Add `escalation_message: "..."` to connection block** |
 
 ---
 
@@ -1125,3 +1194,8 @@ instructions: ->
 | `run` keyword in AiAuthoringBundle | SyntaxError | Use GenAiPlannerBundle for action callbacks |
 | Expecting UI visibility with GenAiPlannerBundle | Agent not visible | Use AiAuthoringBundle for UI visibility |
 | **Ignoring HTTP 404 after publish** | **Agent invisible in UI** | **Run `sf project deploy start` to deploy AiAuthoringBundle metadata** |
+| **Using `escalate:` as action name** | **SyntaxError: Unexpected 'escalate'** | **Use `go_to_escalate:` or `transfer_to_human:`** |
+| **Using `@utils.setVariables` or `@utils.set`** | **Unknown utils declaration type** | **Use `set @variables.x = ...` in instructions** |
+| **Connection block with `outbound_route_type: "queue"`** | **Invalid value error** | **Use `"OmniChannelFlow"` only** |
+| **Connection block without `escalation_message`** | **Parse/validation error** | **Add required `escalation_message` field** |
+| **Connection block referencing non-existent flow** | **HTTP 404 at Publish Agent** | **Create OmniChannelFlow before publishing agent** |

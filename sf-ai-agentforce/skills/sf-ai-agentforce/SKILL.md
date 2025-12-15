@@ -202,7 +202,7 @@ actions:
 
 ## ⚠️ CRITICAL: Reserved Words
 
-**These words CANNOT be used as input/output parameter names:**
+**These words CANNOT be used as input/output parameter names OR action names:**
 
 | Reserved Word | Why | Alternative |
 |---------------|-----|-------------|
@@ -212,6 +212,7 @@ actions:
 | `target` | Keyword for action target | `destination`, `endpoint` |
 | `label` | Keyword for topic label | `display_label`, `title` |
 | `source` | Keyword for linked variables | `data_source`, `origin` |
+| `escalate` | Reserved for `@utils.escalate` | `go_to_escalate`, `transfer_to_human` |
 
 **Example of Reserved Word Conflict:**
 ```agentscript
@@ -1040,16 +1041,27 @@ language:
 
 ```agentscript
 connection messaging:
-   outbound_route_type: "queue"
-   outbound_route_name: "Support_Queue"
+   outbound_route_type: "OmniChannelFlow"
+   outbound_route_name: "Support_Queue_Flow"
+   escalation_message: "Transferring you to a human agent now..."
 ```
 
-| Property | Description |
-|----------|-------------|
-| `outbound_route_type` | Type of routing: `"queue"`, `"skill"`, or `"agent"` |
-| `outbound_route_name` | API name of the Omni-Channel queue, skill, or agent |
+| Property | Required | Description |
+|----------|----------|-------------|
+| `outbound_route_type` | Yes | **MUST be `"OmniChannelFlow"`** - values like `"queue"`, `"skill"`, `"agent"` are NOT supported |
+| `outbound_route_name` | Yes | API name of the Omni-Channel Flow (must exist in org) |
+| `escalation_message` | Yes | Message shown to user during transfer (REQUIRED when other fields present) |
 
-**Note**: Without a connection block, `@utils.escalate` may not properly route to human agents. Configure this when building agents that need live agent escalation.
+**⚠️ CRITICAL: Connection Block Requirements (Tested Dec 2025)**
+
+| Requirement | Details |
+|-------------|---------|
+| **`outbound_route_type`** | Must be `"OmniChannelFlow"` - other values (`queue`, `skill`, `agent`) cause validation errors |
+| **`escalation_message`** | REQUIRED field - missing this causes parse/validation errors |
+| **OmniChannelFlow Must Exist** | The referenced flow must exist in the org or publish fails at "Publish Agent" step |
+| **Publish Failure** | If flow doesn't exist, you'll see HTTP 404 at "Publish Agent" (NOT "Retrieve Metadata") - BotDefinition is NOT created |
+
+**Note**: Without a connection block, `@utils.escalate` may not properly route to human agents. Configure this when building agents that need live agent escalation. Ensure the Omni-Channel Flow exists in your org before publishing the agent.
 
 ### Topic Blocks
 
@@ -1420,9 +1432,20 @@ before_reasoning:
 
 ### Variable Setting Utilities
 
-**@utils.setVariables** - Set multiple variables at once:
+**⚠️ CRITICAL: `@utils.setVariables` and `@utils.set` are NOT supported in AiAuthoringBundle (Tested Dec 2025)**
+
+These utilities cause "Unknown utils declaration type" errors when using `sf agent publish authoring-bundle`. Use the `set` keyword in procedural instructions instead:
 
 ```agentscript
+# ✅ CORRECT - Use 'set' keyword in instructions (works in AiAuthoringBundle)
+reasoning:
+   instructions: ->
+      | Ask the user for their name.
+      set @variables.user_name = ...
+      | Verify the user's identity.
+      set @variables.is_verified = True
+
+# ❌ WRONG - @utils.setVariables NOT supported in AiAuthoringBundle
 reasoning:
    actions:
       update_state: @utils.setVariables
@@ -1430,23 +1453,12 @@ reasoning:
          with is_verified=True
 ```
 
-**@utils.set** - Set a single variable with LLM slot filling:
+| Utility | AiAuthoringBundle | GenAiPlannerBundle | Alternative |
+|---------|-------------------|-------------------|-------------|
+| `@utils.setVariables` | ❌ NOT Supported | ✅ Works | Use `set` keyword in instructions |
+| `@utils.set` | ❌ NOT Supported | ✅ Works | Use `set @variables.x = ...` in instructions |
 
-```agentscript
-reasoning:
-   actions:
-      # LLM determines the value based on conversation context
-      capture_name: @utils.set
-         with user_name=...
-         description: "Extract the user's name from the conversation"
-```
-
-| Utility | Purpose | Use Case |
-|---------|---------|----------|
-| `@utils.setVariables` | Set multiple variables | Bulk state updates |
-| `@utils.set` | Set single variable with slot filling | LLM-driven data capture |
-
-**Note**: Both support slot filling (`...`) to let the LLM extract values from conversation.
+**Note**: The `set` keyword within `instructions: ->` blocks lets the LLM fill values from conversation context (slot filling with `...`).
 
 ### Topic Transitions
 
@@ -2212,6 +2224,11 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-agentforce/hooks/scripts/val
 | **Flow Targets** | `flow://` works in both deployment methods | Ensure Flow deployed before agent publish, names match exactly |
 | **`run` Keyword** | Action chaining syntax | Use `run @actions.x` for callbacks (GenAiPlannerBundle only) |
 | **Lifecycle Blocks** | before/after_reasoning available | Use for initialization and cleanup |
+| **`@utils.set`/`setVariables`** | "Unknown utils declaration type" error | Use `set` keyword in instructions instead (AiAuthoringBundle) |
+| **`escalate` Action Name** | "Unexpected 'escalate'" error | `escalate` is reserved - use `go_to_escalate` or `transfer_to_human` |
+| **Connection `outbound_route_type`** | Invalid values cause validation errors | MUST be `"OmniChannelFlow"` - not `queue`/`skill`/`agent` |
+| **Connection `escalation_message`** | Missing field causes parse errors | REQUIRED when other connection fields are present |
+| **Connection OmniChannelFlow** | HTTP 404 at "Publish Agent" step | Referenced flow must exist in org or BotDefinition NOT created |
 
 ---
 
