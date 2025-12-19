@@ -1,10 +1,11 @@
 <!-- TIER: 3 | DETAILED REFERENCE -->
-<!-- Read after: SKILL.md, agent-script-syntax.md -->
-<!-- Read before: genai-function-reference.md (for GenAiFunction metadata details) -->
+<!-- Read after: SKILL.md, agent-script-reference.md -->
+<!-- Purpose: Complete guide to actions, escalation, and GenAiFunction metadata -->
 
-# Agent Actions Guide
+# Actions Reference
 
-> Comprehensive guide to creating and deploying Agent Actions in Salesforce Agentforce
+Complete guide to Agent Actions in Agentforce: Flow, Apex, API, Prompt actions,
+escalation routing, and GenAiFunction metadata.
 
 ## Overview
 
@@ -949,6 +950,67 @@ Skills invoked:
 
 ---
 
+## Connection Block (Escalation Routing)
+
+The `connection` block enables escalation to human agents via Omni-Channel.
+
+```agentscript
+connection messaging:
+   outbound_route_type: "OmniChannelFlow"
+   outbound_route_name: "Support_Queue_Flow"
+   escalation_message: "Transferring you to a human agent..."
+```
+
+### Connection Block Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `outbound_route_type` | String | Yes | **MUST be `"OmniChannelFlow"`** - only valid value |
+| `outbound_route_name` | String | Yes | API name of Omni-Channel Flow (must exist in org) |
+| `escalation_message` | String | Yes | Message shown to user during transfer |
+
+**⚠️ CRITICAL**: Values like `"queue"`, `"skill"`, `"agent"` cause validation errors!
+
+### Escalation Action
+
+```agentscript
+# AiAuthoringBundle - basic escalation
+actions:
+   transfer_to_human: @utils.escalate
+      description: "Transfer to human agent"
+
+# GenAiPlannerBundle - with reason parameter
+actions:
+   transfer_to_human: @utils.escalate with reason="Customer requested"
+```
+
+### Prerequisites for Escalation
+
+1. Omni-Channel configured in Salesforce
+2. Omni-Channel Flow created and deployed
+3. Connection block in agent script
+4. Messaging channel active (Enhanced Chat, etc.)
+
+---
+
+## GenAiFunction Metadata (Summary)
+
+`GenAiFunction` wraps Apex, Flows, or Prompts as Agent Actions. See `templates/metadata/` for XML templates.
+
+```xml
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Display Name</masterLabel>
+    <developerName>API_Name</developerName>
+    <description>What this action does</description>
+    <invocationTarget>FlowOrApexName</invocationTarget>
+    <invocationTargetType>flow|apex|prompt</invocationTargetType>
+</GenAiFunction>
+```
+
+**Templates available**: `templates/metadata/genai-function-apex.xml`, `templates/metadata/genai-function-flow.xml`
+
+---
+
 ## Best Practices Summary
 
 ```
@@ -972,8 +1034,7 @@ Skills invoked:
 
 ## Related Documentation
 
-- [GenAiFunction Reference](./genai-function-reference.md)
-- [Prompt Template Guide](./prompt-template-guide.md)
-- [sf-integration Skill](../../sf-integration/SKILL.md)
-- [sf-apex Skill](../../sf-apex/SKILL.md)
-- [sf-flow Skill](../../sf-flow/SKILL.md)
+- [Agent Script Reference](agent-script-reference.md) - Complete syntax guide
+- [Prompt Templates](prompt-templates.md) - PromptTemplate metadata
+- [Patterns & Practices](patterns-and-practices.md) - Best practices
+- [CLI Guide](cli-guide.md) - Deployment commands

@@ -1,12 +1,13 @@
-<!-- TIER: 3 | DETAILED REFERENCE -->
-<!-- Read after: SKILL.md, agent-script-quick-reference.md -->
-<!-- Read before: Specialized guides (connection-block-guide.md, etc.) -->
+<!-- TIER: 2 | PRIMARY REFERENCE -->
+<!-- Read after: SKILL.md -->
+<!-- Read before: Specialized guides (actions-reference.md, prompt-templates.md) -->
 
-# Agent Script Syntax Reference
+# Agent Script Reference
 
 Complete syntax reference for the Agent Script language used in Agentforce.
+Includes AiAuthoringBundle compatibility notes, reserved words, and error troubleshooting.
 
-**Updated**: December 2025 - Corrected based on actual Salesforce implementation.
+**Updated**: December 2025 - Verified through systematic testing.
 
 ---
 
@@ -1623,6 +1624,22 @@ instructions: ->
    if @variables.valid == True:
       | All validations passed. Proceeding.
 ```
+
+---
+
+## Reserved Words
+
+These words cannot be used as input/output parameter names or action names:
+
+| Reserved Word | Why Reserved | Alternative Names |
+|---------------|--------------|-------------------|
+| `description` | Keyword for descriptions | `case_description`, `item_description`, `desc` |
+| `inputs` | Keyword for action inputs | `input_data`, `request_inputs`, `params` |
+| `outputs` | Keyword for action outputs | `output_data`, `response_outputs`, `results` |
+| `target` | Keyword for action target | `destination`, `endpoint`, `flow_target` |
+| `label` | Keyword for topic label | `display_label`, `title`, `name` |
+| `source` | Keyword for linked variables | `data_source`, `origin`, `source_field` |
+| `escalate` | Reserved for `@utils.escalate` | `go_to_escalate`, `transfer_to_human`, `human_handoff` |
 
 ---
 

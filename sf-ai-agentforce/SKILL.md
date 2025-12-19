@@ -35,24 +35,15 @@ Expert Agentforce developer specializing in Agent Script syntax, topic design, a
 ### Tier 2: Quick References
 | Need | Document | Description |
 |------|----------|-------------|
-| **What doesn't work** | [agent-script-quick-reference.md](../../docs/agent-script-quick-reference.md) | AiAuthoringBundle gotchas, error quick reference |
-| **Which pattern to use** | [pattern-catalog.md](../../docs/pattern-catalog.md) | Decision tree for choosing patterns |
-| **What command to run** | [agent-cli-reference.md](../../docs/agent-cli-reference.md) | sf agent commands, preview, publish |
+| **Full syntax + gotchas** | [agent-script-reference.md](docs/agent-script-reference.md) | Complete Agent Script spec + reserved words |
+| **CLI commands** | [cli-guide.md](docs/cli-guide.md) | sf agent commands, preview, publish |
 
 ### Tier 3: Detailed References
 | Need | Document | Description |
 |------|----------|-------------|
-| **Full syntax** | [agent-script-syntax.md](../../docs/agent-script-syntax.md) | Complete Agent Script language spec |
-| **Action implementation** | [agent-actions-guide.md](../../docs/agent-actions-guide.md) | Flow, Apex, API, Prompt Template actions |
-| **Best practices** | [best-practices.md](../../docs/best-practices.md) | Production-ready agent design |
-
-### Tier 4: Specialized Guides
-| Need | Document | Description |
-|------|----------|-------------|
-| **Escalation/routing** | [connection-block-guide.md](../../docs/connection-block-guide.md) | OmniChannelFlow, human handoff |
-| **Prompt templates** | [prompt-template-guide.md](../../docs/prompt-template-guide.md) | PromptTemplate metadata |
-| **GenAiFunction metadata** | [genai-function-reference.md](../../docs/genai-function-reference.md) | Wrapping Apex/Flows as actions |
-| **Testing/preview** | [agent-preview-guide.md](../../docs/agent-preview-guide.md) | sf agent preview guide |
+| **Actions** | [actions-reference.md](docs/actions-reference.md) | Flow, Apex, Prompt actions + connection blocks |
+| **Patterns & practices** | [patterns-and-practices.md](docs/patterns-and-practices.md) | Decision tree + best practices |
+| **Prompt templates** | [prompt-templates.md](docs/prompt-templates.md) | PromptTemplate metadata integration |
 
 **⚡ Quick Links:**
 - [Key Insights Table](#-key-insights) - Common errors and fixes
@@ -74,7 +65,7 @@ Patterns added from cross-comparison with official Salesforce agent-script-recip
 | **Multi-Step Workflows** | `patterns/multi-step-workflow.agent` | Boolean flags for progress tracking through complex processes |
 | **Procedural Instructions** | `patterns/procedural-instructions.agent` | Execute `run @actions.x` inside `instructions:->` for conditional data loading |
 | **Topic System Overrides** | `patterns/system-instruction-overrides.agent` | Use `system:` blocks inside topics for persona switching |
-| **Input Binding Patterns** | See [best-practices.md](../../docs/best-practices.md) | When to use `...`, `@variables.x`, or fixed values |
+| **Input Binding Patterns** | See [patterns-and-practices.md](docs/patterns-and-practices.md) | When to use `...`, `@variables.x`, or fixed values |
 
 ### Prompt Template Action Syntax (NEW)
 
@@ -741,11 +732,11 @@ Use **AskUserQuestion** to gather:
 
 | Pattern | Use When | Template |
 |---------|----------|----------|
-| Hello World | Learning / Minimal agent | `templates/getting-started/hello-world.agent` |
-| Simple Q&A | Single topic, no actions | `templates/agent/simple-qa.agent` |
-| Multi-Topic | Multiple conversation modes | `templates/agent/multi-topic.agent` |
-| Action-Based | External integrations needed | `templates/actions/flow-action.agent` |
-| Error Handling | Critical operations | `templates/topics/error-handling.agent` |
+| Hello World | Learning / Minimal agent | `templates/agents/hello-world.agent` |
+| Simple Q&A | Single topic, no actions | `templates/agents/simple-qa.agent` |
+| Multi-Topic | Multiple conversation modes | `templates/agents/multi-topic.agent` |
+| Action-Based | External integrations needed | `templates/components/flow-action.agent` |
+| Error Handling | Critical operations | `templates/components/error-handling.agent` |
 | Lifecycle Events | Before/after reasoning logic | `templates/patterns/lifecycle-events.agent` |
 | Action Callbacks | Guaranteed post-action steps | `templates/patterns/action-callbacks.agent` |
 | Bidirectional Routing | Consult specialist, return | `templates/patterns/bidirectional-routing.agent` |
@@ -754,13 +745,13 @@ Use **AskUserQuestion** to gather:
 | **Procedural Instructions** | Conditional data loading | `templates/patterns/procedural-instructions.agent` |
 | **System Overrides** | Persona/mode switching | `templates/patterns/system-instruction-overrides.agent` |
 
-**Pattern Decision Guide**: See `docs/pattern-catalog.md` for detailed decision tree.
+**Pattern Decision Guide**: See [patterns-and-practices.md](docs/patterns-and-practices.md) for detailed decision tree.
 
 **Template Path Resolution** (try in order):
 1. **Marketplace folder**: `~/.claude/plugins/marketplaces/sf-skills/sf-ai-agentforce/templates/[path]`
 2. **Project folder**: `[project-root]/sf-ai-agentforce/templates/[path]`
 
-**Example**: `Read: ~/.claude/plugins/marketplaces/sf-skills/sf-ai-agentforce/templates/single-topic-agent/`
+**Example**: `Read: ~/.claude/plugins/marketplaces/sf-skills/sf-ai-agentforce/templates/agents/simple-qa.agent`
 
 ### Phase 3: Generation / Validation
 
@@ -927,7 +918,7 @@ Next Steps:
 
 ## Agent Script Syntax Reference (Essentials)
 
-> **📖 Complete Reference**: See [agent-script-syntax.md](../../docs/agent-script-syntax.md) for full documentation.
+> **📖 Complete Reference**: See [agent-script-reference.md](docs/agent-script-reference.md) for full documentation.
 
 ### Block Order (CRITICAL)
 
@@ -1146,7 +1137,7 @@ reasoning:
 
 ## Agent Actions (Summary)
 
-> **📖 Complete Reference**: See [agent-actions-guide.md](../../docs/agent-actions-guide.md) for detailed implementation of all action types.
+> **📖 Complete Reference**: See [actions-reference.md](docs/actions-reference.md) for detailed implementation of all action types.
 
 ### Action Target Summary
 
@@ -1282,8 +1273,7 @@ topic order_processing:
 ## SF CLI Agent Commands Reference
 
 Complete CLI reference for Agentforce agent DevOps. For detailed guides, see:
-- `docs/agent-cli-reference.md` - Full CLI command reference
-- `docs/agent-preview-guide.md` - Preview setup with connected app
+- [cli-guide.md](docs/cli-guide.md) - Full CLI command reference with preview setup
 
 ### Command Quick Reference
 
@@ -1298,7 +1288,7 @@ Complete CLI reference for Agentforce agent DevOps. For detailed guides, see:
 | `sf project retrieve start --metadata Agent:Name` | Sync agent from org |
 | `sf project deploy start --metadata Agent:Name` | Deploy agent to org |
 
-> ⚠️ Commands are in beta. Use `--help` to verify flags. See [agent-cli-reference.md](../../docs/agent-cli-reference.md).
+> ⚠️ Commands are in beta. Use `--help` to verify flags. See [cli-guide.md](docs/cli-guide.md).
 
 ### Authoring Commands
 
@@ -1334,7 +1324,7 @@ sf agent preview --api-name [AgentName] --output-dir ./logs --apex-debug --targe
 | Simulated | (default) | LLM simulates action responses - safe for testing |
 | Live | `--use-live-actions` | Uses actual Apex/Flows in org - requires connected app |
 
-**See `docs/agent-preview-guide.md`** for connected app setup instructions.
+**See [cli-guide.md](docs/cli-guide.md)** for connected app setup instructions.
 
 ### Lifecycle Commands
 

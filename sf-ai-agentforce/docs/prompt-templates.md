@@ -1,8 +1,8 @@
-<!-- TIER: 4 | SPECIALIZED GUIDE -->
-<!-- Read after: agent-actions-guide.md -->
-<!-- Purpose: Deep dive for PromptTemplate metadata and generatePromptResponse:// actions -->
+<!-- TIER: 3 | DETAILED REFERENCE -->
+<!-- Read after: SKILL.md, agent-script-reference.md -->
+<!-- Purpose: PromptTemplate metadata and generatePromptResponse:// actions -->
 
-# Prompt Template Guide
+# Prompt Templates
 
 > Complete guide to creating PromptTemplate metadata for Salesforce Einstein and Agentforce
 
@@ -859,6 +859,6 @@ sf project deploy start -m "PromptTemplate:*"
 
 ## Related Documentation
 
-- [Agent Actions Guide](./agent-actions-guide.md)
-- [GenAiFunction Reference](./genai-function-reference.md)
+- [Actions Reference](actions-reference.md) - Action configuration and metadata
+- [Agent Script Reference](agent-script-reference.md) - Complete syntax guide
 - [Einstein Prompt Builder (Salesforce Help)](https://help.salesforce.com/s/articleView?id=sf.prompt_builder.htm)

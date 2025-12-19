@@ -1,156 +1,89 @@
-# Agent Script Templates Catalog
+# Agent Script Templates
 
-Complete catalog of Agent Script templates organized by difficulty and purpose.
+Organized templates for building Agentforce agents.
 
 ---
 
-## Quick Start Decision Tree
+## Directory Structure
+
+```
+templates/
+├── agents/       Complete, deployable agent examples
+├── components/   Reusable action and topic snippets
+├── patterns/     Advanced patterns (lifecycle, callbacks)
+└── metadata/     XML metadata templates
+```
+
+---
+
+## Quick Start
 
 ```
 What do you need?
 │
-├─► "Just starting - show me the basics"
-│   └─► getting-started/hello-world.agent (BEGINNER)
+├─► "Just starting"
+│   └─► agents/hello-world.agent
 │
-├─► "Complete agent with topics and actions"
-│   └─► agent/multi-topic.agent (INTERMEDIATE)
+├─► "Complete agent with topics"
+│   └─► agents/multi-topic.agent
 │
-├─► "How do I add actions to my agent?"
-│   ├─► actions/flow-action.agent (Flow-based)
-│   └─► actions/apex-action.agent (Apex-based)
+├─► "Add actions to my agent"
+│   ├─► components/flow-action.agent
+│   └─► components/apex-action.agent
 │
-├─► "I need a specific pattern"
-│   └─► patterns/README.md (see pattern decision tree)
+├─► "Advanced patterns"
+│   └─► patterns/ (see patterns/README.md)
 │
-├─► "How do I escalate to human agents?"
-│   └─► connection/escalation-setup.agent
-│
-└─► "I need metadata templates"
-    ├─► genai-metadata/ (GenAiFunction XML)
-    ├─► prompt-templates/ (PromptTemplate XML)
-    └─► flows/ (Flow XML)
+└─► "XML metadata"
+    └─► metadata/
 ```
 
 ---
 
 ## Template Inventory
 
-### Getting Started (BEGINNER)
+### agents/ - Complete Agents
 
-| Template | Purpose | Prerequisites |
-|----------|---------|---------------|
-| `getting-started/hello-world.agent` | Minimal working agent | None |
+| Template | Complexity | Description |
+|----------|------------|-------------|
+| `hello-world.agent` | Beginner | Minimal viable agent |
+| `simple-qa.agent` | Beginner | Single-topic Q&A |
+| `multi-topic.agent` | Intermediate | Multi-topic routing |
+| `production-faq.agent` | Advanced | Production-ready with escalation |
 
-### Core Agent Templates (INTERMEDIATE)
+### components/ - Reusable Parts
 
-| Template | Purpose | Prerequisites |
-|----------|---------|---------------|
-| `agent/simple-qa.agent` | Single-topic Q&A agent | hello-world |
-| `agent/multi-topic.agent` | Multi-topic with routing | simple-qa |
+| Template | Purpose |
+|----------|---------|
+| `flow-action.agent` | Flow action integration |
+| `apex-action.agent` | Apex action integration |
+| `topic-with-actions.agent` | Topic with actions |
+| `error-handling.agent` | Input validation |
+| `escalation-setup.agent` | Human handoff |
 
-### Action Templates (INTERMEDIATE)
+### patterns/ - Advanced (see patterns/README.md)
 
-| Template | Purpose | Prerequisites |
-|----------|---------|---------------|
-| `actions/flow-action.agent` | Call Flow from agent | multi-topic |
-| `actions/apex-action.agent` | Call Apex from agent | flow-action |
+| Template | Purpose | Deployment |
+|----------|---------|------------|
+| `lifecycle-events.agent` | before/after reasoning | GenAiPlannerBundle |
+| `action-callbacks.agent` | Deterministic chains | GenAiPlannerBundle |
+| `bidirectional-routing.agent` | Topic routing with return | Both |
+| `system-instruction-overrides.agent` | Topic-level personas | Both |
+| *(6 more patterns)* | | |
 
-### Topic Templates (INTERMEDIATE)
+### metadata/ - XML Templates
 
-| Template | Purpose | Prerequisites |
-|----------|---------|---------------|
-| `topics/topic-with-actions.agent` | Topic with action definitions | multi-topic |
-| `topics/error-handling.agent` | Input validation pattern | topic-with-actions |
-
-### Connection Templates (INTERMEDIATE)
-
-| Template | Purpose | Prerequisites |
-|----------|---------|---------------|
-| `connection/escalation-setup.agent` | Human agent handoff | multi-topic |
-
-### Advanced Patterns (ADVANCED)
-
-| Template | Purpose | Prerequisites | Deployment |
-|----------|---------|---------------|------------|
-| `patterns/lifecycle-events.agent` | before/after reasoning | multi-topic | GenAiPlannerBundle |
-| `patterns/action-callbacks.agent` | Deterministic action chains | flow-action | GenAiPlannerBundle |
-| `patterns/bidirectional-routing.agent` | Go to topic, return with results | multi-topic | Both |
-| `patterns/llm-controlled-actions.agent` | LLM-selected actions | flow-action | Both |
-| `patterns/advanced-input-bindings.agent` | Variable/slot filling patterns | flow-action | Both |
-| `patterns/prompt-template-action.agent` | generatePromptResponse:// | flow-action | Both |
-| `patterns/multi-step-workflow.agent` | Boolean flags for progress | multi-topic | Both |
-| `patterns/procedural-instructions.agent` | Conditional data loading | flow-action | GenAiPlannerBundle |
-| `patterns/system-instruction-overrides.agent` | Topic-level persona switching | multi-topic | Both |
-
-### Metadata Templates
-
-| Template | Purpose | Used With |
-|----------|---------|-----------|
-| `bundle-meta.xml` | AiAuthoringBundle metadata | All agents |
-| `genai-metadata/genai-function-apex.xml` | Apex → Agent Action | Apex classes |
-| `genai-metadata/genai-function-flow.xml` | Flow → Agent Action | Flows |
-| `genai-metadata/genai-plugin.xml` | Group actions into plugin | GenAiFunction |
-| `prompt-templates/*.xml` | PromptTemplate metadata | generatePromptResponse actions |
-| `flows/http-callout-flow.xml` | HTTP callout Flow | External API calls |
-
----
-
-## Recommended Learning Path
-
-```
-BEGINNER
-────────
-1. getting-started/hello-world.agent
-   └─► Learn: Basic structure, config, system block
-
-2. agent/simple-qa.agent
-   └─► Learn: Reasoning instructions, topic structure
-
-3. agent/multi-topic.agent
-   └─► Learn: Topic transitions, routing
-
-INTERMEDIATE
-────────────
-4. actions/flow-action.agent
-   └─► Learn: Action definitions, Flow integration
-
-5. topics/error-handling.agent
-   └─► Learn: Validation, conditional availability
-
-6. connection/escalation-setup.agent
-   └─► Learn: Human handoff, Omni-Channel
-
-ADVANCED
-────────
-7. patterns/lifecycle-events.agent
-   └─► Learn: before_reasoning, after_reasoning
-
-8. patterns/action-callbacks.agent
-   └─► Learn: run keyword, deterministic chains
-
-9. patterns/system-instruction-overrides.agent
-   └─► Learn: Topic-level personas
-```
-
----
-
-## Deployment Notes
-
-| Template Type | AiAuthoringBundle | GenAiPlannerBundle | Notes |
-|---------------|-------------------|-------------------|-------|
-| Basic agents | ✅ | ✅ | Visible in Agentforce Studio |
-| `run` keyword patterns | ❌ | ✅ | NOT visible in Studio |
-| Lifecycle with actions | ❌ | ✅ | NOT visible in Studio |
-| All others | ✅ | ✅ | Choose based on Studio need |
-
-**Command reference:**
-- AiAuthoringBundle: `sf agent publish authoring-bundle --api-name [Name]`
-- GenAiPlannerBundle: `sf project deploy start --source-dir [path]`
+| Template | Purpose |
+|----------|---------|
+| `bundle-meta.xml` | AiAuthoringBundle metadata |
+| `genai-function-*.xml` | Action metadata |
+| `genai-plugin.xml` | Plugin grouping |
+| `*-prompt-template.xml` | PromptTemplate |
+| `http-callout-flow.xml` | Flow template |
 
 ---
 
 ## Related Documentation
 
-- [SKILL.md](../SKILL.md) - Entry point, workflow guide
-- [pattern-catalog.md](../docs/pattern-catalog.md) - Pattern decision tree
-- [agent-script-syntax.md](../docs/agent-script-syntax.md) - Complete syntax reference
+- [SKILL.md](../SKILL.md) - Main skill reference
+- [docs/](../docs/) - Detailed documentation
