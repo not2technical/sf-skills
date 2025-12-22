@@ -1039,6 +1039,7 @@ topic help:
 | `integer`, `long` types | ❌ NOT Supported | Use `number` type |
 | `list<type>` syntax | ❌ NOT Supported | Use `list[type]` syntax |
 | Nested if statements | ❌ NOT Supported | Use flat `and` conditionals |
+| `filter_from_agent` | ❌ NOT Supported | Use `available when @var == val` syntax |
 
 ### Connection Block (for Escalation)
 
