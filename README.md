@@ -62,43 +62,22 @@ sf-apex/
 
 ## ✨ Available Skills
 
-### 💻 Development
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| ⚡ | **[sf-apex](sf-apex/)** | Apex generation, TAF patterns, LSP validation | 150 | 🧪 Alpha |
-| 🔄 | **[sf-flow](sf-flow/)** | Flow creation & bulk validation | 110 | 🧪 Alpha |
-| ⚡ | **[sf-lwc](sf-lwc/)** | Lightning Web Components, Jest tests, LMS | 130 | 🆕 New |
-| 🔍 | **[sf-soql](sf-soql/)** | Natural language → SOQL, query optimization | 100 | 🆕 New |
-
-### 🧪 Quality & Testing
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| 🧪 | **[sf-testing](sf-testing/)** | Apex test runner, coverage, bulk testing | 100 | 🆕 New |
-| 🐛 | **[sf-debug](sf-debug/)** | Debug log analysis, governor limit fixes | 90 | 🆕 New |
-
-### 📦 Foundation
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| 📋 | **[sf-metadata](sf-metadata/)** | Metadata gen & org queries | 120 | 🧪 Alpha |
-| 💾 | **[sf-data](sf-data/)** | SOQL & test data factories | — | 🧪 Alpha |
-
-### 🔌 Integration & Security
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| 🔐 | **[sf-connected-apps](sf-connected-apps/)** | OAuth apps & ECAs | 120 | 🧪 Alpha |
-| 🔗 | **[sf-integration](sf-integration/)** | Callouts, Events, CDC | 120 | 🧪 Alpha |
-
-### 🤖 AI & Automation
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| 🤖 | **[sf-ai-agentforce](sf-ai-agentforce/)** | Agent Script, Topics, Actions (API v64+) | 150 | 🧪 Alpha |
-
-### 🚀 DevOps & Tooling
-| | Skill | Description | Points | Status |
-|--|-------|-------------|--------|--------|
-| 🚀 | **[sf-deploy](sf-deploy/)** | CI/CD automation (sf CLI v2) | — | 🧪 Alpha |
-| 📊 | **[sf-diagram](sf-diagram/)** | Mermaid diagrams & ERD | — | ✅ Stable |
-| 🛠️ | **[skill-builder](skill-builder/)** | Skill creation wizard | — | ✅ Stable |
+| | Skill | Description | Category | Points | Status |
+|--|-------|-------------|----------|--------|--------|
+| ⚡ | **[sf-apex](sf-apex/)** | Apex generation, TAF patterns, LSP validation | 💻 Development | 150 | 🧪 Alpha |
+| 🔄 | **[sf-flow](sf-flow/)** | Flow creation & bulk validation | 💻 Development | 110 | 🧪 Alpha |
+| ⚡ | **[sf-lwc](sf-lwc/)** | Lightning Web Components, Jest tests, LMS | 💻 Development | 130 | 🆕 New |
+| 🔍 | **[sf-soql](sf-soql/)** | Natural language → SOQL, query optimization | 💻 Development | 100 | 🆕 New |
+| 🧪 | **[sf-testing](sf-testing/)** | Apex test runner, coverage, bulk testing | 🧪 Quality | 100 | 🆕 New |
+| 🐛 | **[sf-debug](sf-debug/)** | Debug log analysis, governor limit fixes | 🧪 Quality | 90 | 🆕 New |
+| 📋 | **[sf-metadata](sf-metadata/)** | Metadata gen & org queries | 📦 Foundation | 120 | 🧪 Alpha |
+| 💾 | **[sf-data](sf-data/)** | SOQL & test data factories | 📦 Foundation | — | 🧪 Alpha |
+| 🔐 | **[sf-connected-apps](sf-connected-apps/)** | OAuth apps & ECAs | 🔌 Integration | 120 | 🧪 Alpha |
+| 🔗 | **[sf-integration](sf-integration/)** | Callouts, Events, CDC | 🔌 Integration | 120 | 🧪 Alpha |
+| 🤖 | **[sf-ai-agentforce](sf-ai-agentforce/)** | Agent Script, Topics, Actions (API v64+) | 🤖 AI & Automation | 150 | 🧪 Alpha |
+| 🚀 | **[sf-deploy](sf-deploy/)** | CI/CD automation (sf CLI v2) | 🚀 DevOps | — | 🧪 Alpha |
+| 📊 | **[sf-diagram](sf-diagram/)** | Mermaid diagrams & ERD | 🛠️ Tooling | — | ✅ Stable |
+| 🛠️ | **[skill-builder](skill-builder/)** | Skill creation wizard | 🛠️ Tooling | — | ✅ Stable |
 
 ## 🚀 Installation
 
@@ -108,11 +87,22 @@ First, add the marketplace to Claude Code:
 /plugin marketplace add Jaganpro/sf-skills
 ```
 
-### 📺 Video 1: How to Add/Install Skills to ClaudeCode?
+<details>
+<summary><b>📺 Video Tutorials</b> (click to expand)</summary>
+
+### Video 1: How to Add/Install Skills to Claude Code
 
 <a href="https://youtu.be/a38MM8PBTe4" target="_blank">
-  <img src="https://img.youtube.com/vi/a38MM8PBTe4/maxresdefault.jpg" alt="How to Add/Install Skills to ClaudeCode" />
+  <img src="https://img.youtube.com/vi/a38MM8PBTe4/maxresdefault.jpg" alt="How to Add/Install Skills to Claude Code" width="600" />
 </a>
+
+### Video 2: Skills Demo & Walkthrough
+
+<a href="https://www.youtube.com/watch?v=gW2RP96jdBc" target="_blank">
+  <img src="https://img.youtube.com/vi/gW2RP96jdBc/maxresdefault.jpg" alt="Skills Demo & Walkthrough" width="600" />
+</a>
+
+</details>
 
 ## 🔗 Skill Architecture
 
