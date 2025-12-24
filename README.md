@@ -275,10 +275,19 @@ Hooks provide **advisory feedback** — they inform but don't block operations.
 - **Salesforce CLI** v2.x (`sf` command)
 - **Python 3.10+** (for validation hooks)
 
-**Optional** (enables additional Code Analyzer engines):
+**Optional** (enables additional features):
+
+*Code Analyzer engines:*
 - **Java 11+** — Enables PMD, CPD, SFGE engines (`brew install openjdk@11`)
 - **Node.js** — Enables ESLint, RetireJS for LWC (`brew install node`)
 - **Code Analyzer plugin** — `sf plugins install @salesforce/sfdx-code-analyzer`
+
+*LSP real-time validation (auto-fix loops):*
+- **VS Code with Salesforce Extensions** — LSP servers are bundled with VS Code extensions
+  - Agent Script: Install "Agent Script" extension by Salesforce
+  - Apex: Install "Salesforce Extension Pack"
+- **Java 11+** — Required for Apex LSP (same as Code Analyzer)
+- **Node.js 18+** — Required for Agent Script LSP
 
 ## Usage Examples
 
