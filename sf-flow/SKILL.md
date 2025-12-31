@@ -46,7 +46,14 @@ python3 ~/.claude/plugins/marketplaces/sf-skills/sf-flow-builder/hooks/scripts/v
 
 ⚠️ Flow references custom object/fields? Create with sf-metadata FIRST. Deploy objects BEFORE flows.
 
-See `shared/docs/orchestration.md` (project root) for details.
+```
+1. sf-metadata  → Create objects/fields (local)
+2. sf-flow      ◀── YOU ARE HERE (create flow locally)
+3. sf-deploy    → Deploy all metadata (remote)
+4. sf-data      → Create test data (remote - objects must exist!)
+```
+
+See `docs/orchestration.md` for extended orchestration patterns including Agentforce.
 
 ---
 
@@ -353,7 +360,17 @@ screens → start → status → subflows → textTemplates → variables → wa
 
 ## Cross-Skill Integration
 
-See `shared/docs/cross-skill-integration.md` (project root)
+| From Skill | To sf-flow | When |
+|------------|------------|------|
+| sf-ai-agentforce | → sf-flow | "Create Autolaunched Flow for agent action" |
+| sf-apex | → sf-flow | "Create Flow wrapper for Apex logic" |
+| sf-integration | → sf-flow | "Create HTTP Callout Flow" |
+
+| From sf-flow | To Skill | When |
+|--------------|----------|------|
+| sf-flow | → sf-metadata | "Describe Invoice__c" (verify fields before flow) |
+| sf-flow | → sf-deploy | "Deploy flow with --dry-run" |
+| sf-flow | → sf-data | "Create 200 test Accounts" (after deploy) |
 
 **Deployment**: See Phase 4 above.
 
@@ -395,7 +412,7 @@ Embed custom Lightning Web Components in Flow Screens for rich, interactive UIs.
 |----------|----------|
 | LWC Integration Guide | [docs/lwc-integration-guide.md](docs/lwc-integration-guide.md) |
 | LWC Component Setup | [sf-lwc/docs/flow-integration-guide.md](../sf-lwc/docs/flow-integration-guide.md) |
-| Triangle Architecture | [shared/docs/flow-lwc-apex-triangle.md](../shared/docs/flow-lwc-apex-triangle.md) |
+| Triangle Architecture | [docs/triangle-pattern.md](docs/triangle-pattern.md) |
 
 ---
 
@@ -430,7 +447,7 @@ Call Apex `@InvocableMethod` classes from Flow for complex business logic.
 |----------|----------|
 | Apex Action Template | `templates/apex-action-template.xml` |
 | Apex @InvocableMethod Guide | [sf-apex/docs/flow-integration.md](../sf-apex/docs/flow-integration.md) |
-| Triangle Architecture | [shared/docs/flow-lwc-apex-triangle.md](../shared/docs/flow-lwc-apex-triangle.md) |
+| Triangle Architecture | [docs/triangle-pattern.md](docs/triangle-pattern.md) |
 
 ### ⚠️ Flows for sf-ai-agentforce
 

@@ -485,7 +485,7 @@ When your Invocable is deployed, Flows call it like this:
 
 | Integration | See Also |
 |-------------|----------|
-| Flow → LWC → Apex | [shared/docs/flow-lwc-apex-triangle.md](../../shared/docs/flow-lwc-apex-triangle.md) |
+| Flow → LWC → Apex | [triangle-pattern.md](triangle-pattern.md) |
 | Apex → LWC | [docs/lwc-controller-patterns.md](./lwc-controller-patterns.md) (via @AuraEnabled) |
 | Agentforce Actions | sf-ai-agentforce skill (similar pattern for agent actions) |
 

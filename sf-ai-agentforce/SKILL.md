@@ -149,7 +149,7 @@ There are **two deployment methods** with **different capabilities**:
 - **Deployments**: Use `Skill(skill="sf-deploy")` for all deployments
 - **Apex**: ALWAYS use `Skill(skill="sf-apex")` for InvocableMethod classes
 
-See `shared/docs/orchestration.md` (project root) for cross-skill orchestration details.
+See `docs/orchestration.md` for the complete Agentforce orchestration workflow and integration extended order.
 
 ---
 

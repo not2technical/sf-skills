@@ -437,6 +437,6 @@ Use the template at `templates/flow-screen-component/` as a starting point.
 
 | Integration | See Also |
 |-------------|----------|
-| Flow → Apex → LWC | [shared/docs/flow-lwc-apex-triangle.md](../../shared/docs/flow-lwc-apex-triangle.md) |
+| Flow → Apex → LWC | [triangle-pattern.md](triangle-pattern.md) |
 | Apex @AuraEnabled | [sf-apex/docs/best-practices.md](../../sf-apex/docs/best-practices.md) |
 | Flow Templates | [sf-flow/templates/](../../sf-flow/templates/) |

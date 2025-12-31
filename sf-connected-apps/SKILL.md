@@ -137,7 +137,11 @@ Score: XX/120 ⭐⭐⭐⭐ Rating
 
 ### Scoring Thresholds
 
-See `shared/docs/scoring-overview.md` (project root). Block deployment if score < 54.
+| Score | Action | Meaning |
+|-------|--------|---------|
+| **80-100** | ✅ Deploy | Production-ready |
+| **54-79** | ⚠️ Review | May need security hardening |
+| **<54** | ❌ Block | Security risk - fix before deploying |
 
 ### Phase 5: Deployment & Documentation
 

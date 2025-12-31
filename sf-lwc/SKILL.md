@@ -1388,7 +1388,7 @@ handleNext() {
 |----------|----------|
 | Flow Screen Component Template | `templates/flow-screen-component/` |
 | Flow Integration Guide | [docs/flow-integration-guide.md](docs/flow-integration-guide.md) |
-| Triangle Architecture | [shared/docs/flow-lwc-apex-triangle.md](../shared/docs/flow-lwc-apex-triangle.md) |
+| Triangle Architecture | [docs/triangle-pattern.md](docs/triangle-pattern.md) |
 
 ---
 

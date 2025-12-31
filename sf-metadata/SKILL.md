@@ -29,7 +29,14 @@ Expert Salesforce administrator specializing in metadata architecture, security 
 
 ⚠️ sf-data requires objects deployed to org. Always deploy BEFORE creating test data.
 
-See `shared/docs/orchestration.md` (project root) for details.
+```
+1. sf-metadata  ◀── YOU ARE HERE (create objects/fields locally)
+2. sf-flow      → Create flow definitions (local)
+3. sf-deploy    → Deploy all metadata (remote)
+4. sf-data      → Create test data (remote - objects must exist!)
+```
+
+See `docs/orchestration.md` for extended orchestration patterns including Agentforce.
 
 ---
 
@@ -298,7 +305,7 @@ Next Steps:
 
 ### Scoring
 
-See `shared/docs/scoring-overview.md` (project root) | **Thresholds**: ⭐⭐⭐⭐⭐ 108+ | ⭐⭐⭐⭐ 96-107 | ⭐⭐⭐ 84-95 | Block: <72
+**Thresholds**: ⭐⭐⭐⭐⭐ 108+ | ⭐⭐⭐⭐ 96-107 | ⭐⭐⭐ 84-95 | Block: <72
 
 ---
 
@@ -389,13 +396,16 @@ See `shared/docs/scoring-overview.md` (project root) | **Thresholds**: ⭐⭐⭐
 
 ## Cross-Skill Integration
 
-See `shared/docs/cross-skill-integration.md` (project root)
+| From Skill | To sf-metadata | When |
+|------------|----------------|------|
+| sf-apex | → sf-metadata | "Describe Invoice__c" (discover fields before coding) |
+| sf-flow | → sf-metadata | "Describe object fields, record types, validation rules" |
+| sf-data | → sf-metadata | "Describe Custom_Object__c fields" (discover structure) |
 
-| Direction | Pattern |
-|-----------|---------|
-| sf-apex → sf-metadata | "Describe Invoice__c" (discover fields before coding) |
-| sf-flow → sf-metadata | "Describe object fields, record types, validation rules" |
-| sf-metadata → sf-deploy | "Deploy with --dry-run" (validate & deploy metadata) |
+| From sf-metadata | To Skill | When |
+|------------------|----------|------|
+| sf-metadata | → sf-deploy | "Deploy with --dry-run" (validate & deploy metadata) |
+| sf-metadata | → sf-flow | After creating objects/fields that Flow will reference |
 
 ---
 

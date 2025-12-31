@@ -145,7 +145,7 @@ Next Steps: Run tests, verify behavior, monitor logs
 | **Performance** | 10 | Monitor with `Limits`; cache expensive ops; scope variables; async for heavy |
 | **Documentation** | 10 | ApexDoc on classes/methods; meaningful params |
 
-See `shared/docs/scoring-overview.md` (project root) for thresholds. Block if <67 points.
+**Thresholds**: ✅ 90+ (Deploy) | ⚠️ 67-89 (Review) | ❌ <67 (Block - fix required)
 
 ---
 
@@ -400,7 +400,7 @@ public with sharing class RecordProcessor {
 
 **See Also**:
 - [docs/flow-integration.md](docs/flow-integration.md) - Complete @InvocableMethod guide
-- [shared/docs/flow-lwc-apex-triangle.md](../shared/docs/flow-lwc-apex-triangle.md) - Full Triangle architecture
+- [docs/triangle-pattern.md](docs/triangle-pattern.md) - Flow-LWC-Apex triangle (Apex perspective)
 
 ---
 

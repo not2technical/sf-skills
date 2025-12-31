@@ -26,13 +26,25 @@ Expert Salesforce DevOps engineer specializing in deployment automation, CI/CD p
 
 ## ⚠️ CRITICAL: Orchestration Order
 
-**sf-metadata → sf-flow → sf-deploy → sf-data** (you are here: sf-deploy)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  sf-metadata → sf-flow → sf-deploy → sf-data                               │
+│                              ▲                                              │
+│                         YOU ARE HERE                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-See `shared/docs/orchestration.md` (project root) for details.
+**Deploy order WITHIN sf-deploy**: Objects/Fields → Permission Sets → Apex → Flows (Draft) → Activate Flows
 
-**Deploy order WITHIN sf-deploy**: Objects/Fields → Permission Sets → Flows → Apex → Activate Flows
+| Phase | Metadata Type | Why This Order |
+|-------|---------------|----------------|
+| 1 | Custom Objects/Fields | Everything references these |
+| 2 | Permission Sets | FLS requires fields to exist |
+| 3 | Apex Classes | @InvocableMethod needed before Flows |
+| 4 | Flows (as Draft) | Flows reference fields and Apex |
+| 5 | Activate Flows | Safe to activate after validation |
 
-*Why*: Flows need fields, users need FLS, triggers may need active flows.
+See `docs/orchestration.md` for detailed deployment workflows and agent deployment patterns.
 
 ---
 

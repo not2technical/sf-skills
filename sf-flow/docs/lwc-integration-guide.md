@@ -474,7 +474,7 @@ Pass Flow context to LWC using record context:
 | Integration | See Also |
 |-------------|----------|
 | LWC Component Setup | [sf-lwc/docs/flow-integration-guide.md](../../sf-lwc/docs/flow-integration-guide.md) |
-| Full Triangle Architecture | [shared/docs/flow-lwc-apex-triangle.md](../../shared/docs/flow-lwc-apex-triangle.md) |
+| Full Triangle Architecture | [triangle-pattern.md](triangle-pattern.md) |
 | LWC FlowAttributeChangeEvent | [sf-lwc/templates/flow-screen-component/](../../sf-lwc/templates/flow-screen-component/) |
 
 ---

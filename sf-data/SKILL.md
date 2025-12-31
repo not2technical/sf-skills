@@ -51,11 +51,23 @@ The sf-data skill provides comprehensive data management capabilities:
 
 ## ⚠️ CRITICAL: Orchestration Order
 
-**sf-metadata → sf-flow → sf-deploy → sf-data** (you are here)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  sf-metadata → sf-flow → sf-deploy → sf-data                               │
+│                                         ▲                                   │
+│                                    YOU ARE HERE (LAST!)                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-sf-data REQUIRES objects to exist in org. Error `SObject type 'X' not supported` = deploy metadata first.
+**sf-data operates on REMOTE org data.** Objects/fields must be deployed before sf-data can create records.
 
-See `shared/docs/orchestration.md` (project root) for details.
+| Error | Meaning | Fix |
+|-------|---------|-----|
+| `SObject type 'X' not supported` | Object not deployed | Run sf-deploy BEFORE sf-data |
+| `INVALID_FIELD: No such column 'Field__c'` | Field not deployed OR FLS issue | Deploy field + Permission Set |
+| `REQUIRED_FIELD_MISSING` | Validation rule requires field | Include all required fields |
+
+See `docs/orchestration.md` for the 251-record pattern and cleanup sequences.
 
 ---
 
@@ -248,13 +260,16 @@ public class TestDataFactory_Lead_Extended {
 
 ## Cross-Skill Integration
 
-See `shared/docs/cross-skill-integration.md` (project root)
+| From Skill | To sf-data | When |
+|------------|------------|------|
+| sf-apex | → sf-data | "Create 251 Accounts for bulk testing" |
+| sf-flow | → sf-data | "Create Opportunities with StageName='Closed Won'" |
+| sf-testing | → sf-data | "Generate test records for test class" |
 
-| Direction | Pattern |
-|-----------|---------|
-| sf-data → sf-metadata | "Describe Invoice__c" (discover fields) |
-| sf-apex → sf-data | "Create 251 Accounts for bulk testing" |
-| sf-flow → sf-data | "Create Opportunities with StageName='Closed Won'" |
+| From sf-data | To Skill | When |
+|--------------|----------|------|
+| sf-data | → sf-metadata | "Describe Invoice__c" (discover object structure) |
+| sf-data | → sf-deploy | "Redeploy field after adding validation rule" |
 
 ---
 
