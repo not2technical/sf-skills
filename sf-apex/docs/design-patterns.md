@@ -953,6 +953,228 @@ if (result.success) {
 
 ---
 
+## Domain Class Pattern
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### Purpose
+
+Encapsulate business rules in domain-specific classes, making code read like plain English and enabling reuse across the application.
+
+### Implementation
+
+```apex
+/**
+ * Domain class encapsulating Account business rules
+ * Rules live here, not scattered across triggers/services
+ */
+public class AccountRules {
+
+    public static Boolean isStrategicAccount(Account account) {
+        return isEnterpriseCustomer(account) &&
+               isHighValue(account) &&
+               isInTargetMarket(account);
+    }
+
+    public static Boolean isEnterpriseCustomer(Account account) {
+        return account.Type == 'Enterprise' &&
+               account.NumberOfEmployees > 500;
+    }
+
+    public static Boolean isHighValue(Account account) {
+        return account.AnnualRevenue != null &&
+               account.AnnualRevenue > 1000000;
+    }
+
+    public static Boolean isInTargetMarket(Account account) {
+        Set<String> targetIndustries = new Set<String>{
+            'Technology', 'Finance', 'Healthcare'
+        };
+        Set<String> targetCountries = new Set<String>{
+            'United States', 'Canada', 'United Kingdom'
+        };
+
+        return targetIndustries.contains(account.Industry) &&
+               targetCountries.contains(account.BillingCountry);
+    }
+
+    public static Boolean requiresExecutiveApproval(Account account, Decimal dealValue) {
+        return isStrategicAccount(account) && dealValue > 500000;
+    }
+
+    public static Boolean isEligibleForDiscount(Account account) {
+        return account.Customer_Since__c != null &&
+               account.Customer_Since__c.monthsBetween(Date.today()) > 24 &&
+               isHighValue(account);
+    }
+}
+```
+
+### Usage
+
+```apex
+// Reads like plain English
+public void processOpportunity(Opportunity opp, Account account) {
+    if (AccountRules.isStrategicAccount(account)) {
+        assignToEnterpriseTeam(opp);
+    }
+
+    if (AccountRules.requiresExecutiveApproval(account, opp.Amount)) {
+        routeForApproval(opp);
+    }
+
+    if (AccountRules.isEligibleForDiscount(account)) {
+        applyLoyaltyDiscount(opp);
+    }
+}
+```
+
+### When to Use
+
+- Business rules are reused across multiple classes
+- Complex boolean logic needs to be readable
+- Rules change frequently (centralized = easier updates)
+- You want trigger/service code to read like business requirements
+
+### Relationship to Other Patterns
+
+| Pattern | Relationship |
+|---------|--------------|
+| Selector | Domain class uses Selector for data access |
+| Service | Service orchestrates, Domain validates |
+| Repository | Domain class is data-agnostic |
+| Strategy | Domain rules can use Strategy for variations |
+
+---
+
+## Abstraction Level Management
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### Purpose
+
+Ensure each method operates at a consistent level of abstraction. Don't mix high-level orchestration with low-level implementation details.
+
+### The Problem
+
+```apex
+// BAD: Mixed abstraction levels
+public void processNewCustomer(Account account) {
+    // HIGH-LEVEL: Validation
+    validateAccount(account);
+
+    // LOW-LEVEL: String manipulation (doesn't belong here)
+    String sanitizedPhone = account.Phone.replaceAll('[^0-9]', '');
+    if (sanitizedPhone.length() == 10) {
+        sanitizedPhone = '1' + sanitizedPhone;
+    }
+    account.Phone = '+' + sanitizedPhone;
+
+    // HIGH-LEVEL: Save
+    insert account;
+
+    // LOW-LEVEL: HTTP details (doesn't belong here)
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint('https://api.crm.com/customers');
+    req.setMethod('POST');
+    req.setHeader('Content-Type', 'application/json');
+    req.setBody(JSON.serialize(account));
+    Http http = new Http();
+    HttpResponse res = http.send(req);
+
+    // HIGH-LEVEL: Notification
+    sendWelcomeEmail(account);
+}
+```
+
+### The Solution
+
+```apex
+// GOOD: Consistent high-level abstraction
+public void processNewCustomer(Account account) {
+    validateAccount(account);
+    normalizePhoneNumber(account);
+    insert account;
+    syncToExternalCRM(account);
+    sendWelcomeEmail(account);
+}
+
+// Low-level details extracted to focused methods
+private void normalizePhoneNumber(Account account) {
+    if (String.isBlank(account.Phone)) return;
+
+    String digitsOnly = account.Phone.replaceAll('[^0-9]', '');
+    if (digitsOnly.length() == 10) {
+        digitsOnly = '1' + digitsOnly;
+    }
+    account.Phone = '+' + digitsOnly;
+}
+
+private void syncToExternalCRM(Account account) {
+    CRMIntegrationService.syncCustomer(account);
+}
+```
+
+### Abstraction Layers in Apex
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TRIGGER LAYER                                              │
+│  - Routes events to handlers                                │
+│  - No business logic                                        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  HANDLER/SERVICE LAYER (High-level)                         │
+│  - Orchestrates business operations                         │
+│  - Coordinates between components                           │
+│  - Each step is a method call, not implementation           │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  DOMAIN LAYER (Business rules)                              │
+│  - Encapsulates business logic                              │
+│  - AccountRules, OpportunityRules, etc.                     │
+│  - Pure logic, no infrastructure                            │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  DATA ACCESS LAYER (Low-level)                              │
+│  - Selectors for SOQL                                       │
+│  - Repositories for DML                                     │
+│  - Integration services for external calls                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Guidelines
+
+| Level | Should Contain | Should NOT Contain |
+|-------|---------------|-------------------|
+| High (Orchestration) | Method calls, flow control | SOQL, DML, string parsing |
+| Mid (Domain) | Business rules, validation | HTTP calls, database queries |
+| Low (Data Access) | SOQL, DML, HTTP | Business decisions |
+
+### Signs of Mixed Abstraction
+
+- A method has both `[SELECT ...]` and business logic
+- HTTP request building next to email sending
+- String manipulation in a method that also updates records
+- Governor limit checks scattered among business rules
+
+### Benefits
+
+- Each method is easier to understand in isolation
+- Methods at the same level can be tested with similar techniques
+- Changes to implementation don't affect orchestration
+- Code reads like a high-level description of the process
+
+---
+
 ## Pattern Selection Guide
 
 | Need | Pattern |
@@ -967,3 +1189,5 @@ if (result.success) {
 | React to state changes | Observer |
 | Queue/undo operations | Command |
 | Simplify complex systems | Facade |
+| Encapsulate business rules | Domain Class |
+| Consistent method structure | Abstraction Levels |

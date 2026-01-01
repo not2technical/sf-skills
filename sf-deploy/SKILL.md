@@ -212,6 +212,62 @@ See [examples/deployment-report-template.md](examples/deployment-report-template
 - **Backup metadata**: Retrieve before major deployments
 - **Quick deploy**: Use for validated changesets
 
+---
+
+## Trigger Deployment Safety
+
+> 💡 *See `docs/trigger-deployment-safety.md` for comprehensive guide.*
+
+### Pre-Deployment Guardrails
+
+Before deploying triggers, verify:
+
+| Check | Command/Action |
+|-------|---------------|
+| Trigger chain analysis | Map all triggers firing together |
+| Cascade failure review | Identify atomic vs independent processes |
+| Async decoupling | Use Queueable/Events for external calls |
+| Savepoint usage | Verify explicit atomicity where needed |
+| Test coverage | Include cascade success/failure tests |
+
+### Common Trigger Cascade Risks
+
+| Risk | Symptom | Solution |
+|------|---------|----------|
+| External callout in trigger | Cascade failure from HTTP timeout | Move to Queueable |
+| Shared exception handling | One failure rolls back all | Isolate with try-catch or async |
+| Recursive triggers | Stack overflow or DML errors | Use static flag recursion guard |
+| Order-dependent triggers | Inconsistent behavior | Document and test trigger order |
+
+### Pre-Deployment Checklist
+
+```
+TRIGGER SAFETY CHECKLIST:
+□ Identify all triggers in deployment
+□ Map trigger chains (which triggers fire together)
+□ Verify cascade behavior is intentional
+□ Check for external callouts → should be async
+□ Confirm savepoint usage for atomic operations
+□ Test both success and failure cascade scenarios
+□ Validate with --dry-run before production deploy
+```
+
+### Recommended Async Patterns
+
+```apex
+// BAD: Synchronous external call in trigger
+trigger AccountTrigger on Account (after insert) {
+    ExternalService.sync(Trigger.new);  // Failure cascades
+}
+
+// GOOD: Async decoupling
+trigger AccountTrigger on Account (after insert) {
+    if (canEnqueueJob()) {
+        System.enqueueJob(new AccountSyncQueueable(Trigger.newMap.keySet()));
+    }
+}
+```
+
 ## CI/CD Integration
 
 Standard pipeline workflow:

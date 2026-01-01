@@ -392,3 +392,252 @@ public class TriggerHelper {
     }
 }
 ```
+
+---
+
+## 10. Guard Clauses & Fail-Fast
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### The Problem
+
+Deeply nested validation leads to hard-to-read code where business logic is buried.
+
+### Anti-Pattern
+```apex
+// BAD: Deep nesting obscures business logic
+public void processAccountUpdate(Account oldAccount, Account newAccount) {
+    if (newAccount != null) {
+        if (oldAccount != null) {
+            if (newAccount.Id != null) {
+                if (hasFieldChanged(oldAccount, newAccount)) {
+                    if (UserInfo.getUserType() == 'Standard') {
+                        // Actual business logic buried 5 levels deep
+                        performSync(newAccount);
+                        sendNotification(newAccount);
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### Best Practice: Guard Clauses
+```apex
+// GOOD: Guard clauses at the top, exit early
+public void processAccountUpdate(Account oldAccount, Account newAccount) {
+    // Guard clauses - validate preconditions and exit fast
+    if (newAccount == null) return;
+    if (oldAccount == null) return;
+    if (newAccount.Id == null) return;
+    if (!hasFieldChanged(oldAccount, newAccount)) return;
+    if (UserInfo.getUserType() != 'Standard') return;
+
+    // Main logic is now at the top level, clearly visible
+    performSync(newAccount);
+    sendNotification(newAccount);
+}
+```
+
+### Parameter Validation with Exceptions
+
+For public APIs, throw exceptions for invalid input:
+
+```apex
+public Database.LeadConvertResult convertLead(Id leadId, Id accountId) {
+    // Guard clauses with exceptions for public API
+    if (leadId == null) {
+        throw new IllegalArgumentException('Lead ID cannot be null');
+    }
+
+    if (leadId.getSObjectType() != Lead.SObjectType) {
+        throw new IllegalArgumentException('Expected Lead ID, received: ' + leadId.getSObjectType());
+    }
+
+    Lead leadRecord = queryLead(leadId);
+
+    if (leadRecord == null) {
+        throw new IllegalArgumentException('Lead not found: ' + leadId);
+    }
+
+    if (leadRecord.IsConverted) {
+        throw new IllegalArgumentException('Lead is already converted: ' + leadId);
+    }
+
+    // Main conversion logic
+    return performConversion(leadRecord, accountId);
+}
+```
+
+### When to Use Each Pattern
+
+| Scenario | Pattern | Example |
+|----------|---------|---------|
+| Private/internal methods | `return` early | `if (list == null) return;` |
+| Public API | `throw Exception` | `throw new IllegalArgumentException(...)` |
+| Trigger handlers | `return` for skip | `if (records.isEmpty()) return;` |
+| Validation service | `addError()` | `record.addError('...')` |
+
+---
+
+## 11. Comment Best Practices
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### Core Principle
+
+Comments should explain **"why"**, not **"what"**. The code itself should communicate the "what".
+
+### When Comments Add Value
+
+```apex
+// GOOD: Explains business decision
+// Salesforce processes triggers in batches of 200. We use 201 to ensure
+// our code handles batch boundaries correctly during testing.
+private static final Integer BULK_TEST_SIZE = 201;
+
+// GOOD: Documents platform limitation
+// Safe navigation (?.) doesn't work in formulas - must use IF(ISBLANK())
+// See Known Issue W-12345678
+
+// GOOD: References external documentation
+// Algorithm based on RFC 7519 (JSON Web Token specification)
+// See: https://tools.ietf.org/html/rfc7519#section-4.1
+
+// GOOD: Explains non-obvious optimization
+// DML on empty list still consumes ~10x CPU. Always check isEmpty().
+if (!accountsToUpdate.isEmpty()) {
+    update accountsToUpdate;
+}
+```
+
+### Comment Anti-Patterns
+
+```apex
+// BAD: Restates what code clearly shows
+Integer count = 0;  // Initialize count to zero
+
+// BAD: Version history belongs in Git
+// Modified by John on 2024-01-15 to add validation
+// Modified by Jane on 2024-02-20 to fix bug
+
+// BAD: Commented-out code (delete it!)
+// if (account.Type == 'Partner') {
+//     processPartner(account);
+// }
+
+// BAD: TODO without owner or ticket
+// TODO: fix this later
+
+// GOOD: TODO with context
+// TODO(JIRA-1234): Refactor to use Platform Events after Spring '26 release
+```
+
+### Self-Documenting Code
+
+Instead of comments, make code self-explanatory:
+
+```apex
+// BAD: Needs comment to explain
+if (acc.AnnualRevenue > 1000000 && acc.Type == 'Enterprise' && acc.Industry == 'Technology') {
+    // Process strategic tech accounts
+}
+
+// GOOD: Code explains itself
+Boolean isStrategicTechAccount =
+    acc.AnnualRevenue > 1000000 &&
+    acc.Type == 'Enterprise' &&
+    acc.Industry == 'Technology';
+
+if (isStrategicTechAccount) {
+    processStrategicAccount(acc);
+}
+```
+
+---
+
+## 12. DML Performance Pattern
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### The Problem
+
+DML operations on empty collections still consume significant CPU time (~10x more than checking isEmpty first).
+
+### Anti-Pattern
+```apex
+// BAD: DML on potentially empty list
+List<Account> accountsToUpdate = new List<Account>();
+// ... conditional logic that might not add anything ...
+update accountsToUpdate;  // Wastes CPU even if empty
+```
+
+### Best Practice
+```apex
+// GOOD: Always check isEmpty() before DML
+if (!accountsToUpdate.isEmpty()) {
+    update accountsToUpdate;
+}
+```
+
+### SafeDML Wrapper
+
+Create a utility class to enforce this pattern:
+
+```apex
+public class SafeDML {
+
+    public static Database.SaveResult[] safeInsert(List<SObject> records) {
+        if (records == null || records.isEmpty()) {
+            return new List<Database.SaveResult>();
+        }
+        return Database.insert(records, false);
+    }
+
+    public static Database.SaveResult[] safeUpdate(List<SObject> records) {
+        if (records == null || records.isEmpty()) {
+            return new List<Database.SaveResult>();
+        }
+        return Database.update(records, false);
+    }
+
+    public static Database.DeleteResult[] safeDelete(List<SObject> records) {
+        if (records == null || records.isEmpty()) {
+            return new List<Database.DeleteResult>();
+        }
+        return Database.delete(records, false);
+    }
+
+    public static Database.UpsertResult[] safeUpsert(
+        List<SObject> records,
+        Schema.SObjectField externalIdField
+    ) {
+        if (records == null || records.isEmpty()) {
+            return new List<Database.UpsertResult>();
+        }
+        return Database.upsert(records, externalIdField, false);
+    }
+}
+```
+
+### Usage
+```apex
+// Clean, safe DML operations
+SafeDML.safeInsert(newAccounts);
+SafeDML.safeUpdate(modifiedContacts);
+SafeDML.safeDelete(obsoleteRecords);
+```
+
+### Performance Impact
+
+| Scenario | CPU Time |
+|----------|----------|
+| `update emptyList` | ~100-200 CPU ms |
+| `if (!empty) update` | ~10-20 CPU ms |
+| **Savings** | **~10x improvement** |
+
+In triggers processing many records, this optimization compounds significantly.

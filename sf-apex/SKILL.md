@@ -347,8 +347,22 @@ See `docs/trigger-actions-framework.md` (in sf-apex folder) for full patterns.
 
 ## Reference
 
-**Docs**: `docs/` folder (in sf-apex) - best-practices, trigger-actions-framework, security-guide, testing-guide, naming-conventions, solid-principles, design-patterns, code-review-checklist
+**Docs**: `docs/` folder (in sf-apex):
+| Document | Description |
+|----------|-------------|
+| `best-practices.md` | Bulkification, collections, null safety, guard clauses, DML performance |
+| `code-smells-guide.md` | Code smells detection and refactoring patterns (**NEW**) |
+| `design-patterns.md` | 12 patterns including Domain Class, Abstraction Levels (**NEW patterns**) |
+| `trigger-actions-framework.md` | TAF setup and patterns |
+| `security-guide.md` | CRUD/FLS, sharing, SOQL injection prevention |
+| `testing-guide.md` | Test patterns, mocking, bulk testing |
+| `naming-conventions.md` | Variable, method, class naming rules |
+| `solid-principles.md` | SOLID principles for Apex |
+| `code-review-checklist.md` | 150-point scoring criteria |
+
 - **Path**: `~/.claude/plugins/marketplaces/sf-skills/sf-apex/docs/`
+
+> 💡 New content from *"Clean Apex Code"* (Pablo Gonzalez) integrated into best-practices.md, design-patterns.md, and the new code-smells-guide.md.
 
 ---
 

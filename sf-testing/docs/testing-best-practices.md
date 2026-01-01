@@ -402,3 +402,110 @@ static void test[Method]_[Condition]_[ExpectedOutcome]() {
     // Assert.isNotNull(value, 'Descriptive message');
 }
 ```
+
+---
+
+## Test Speed Philosophy
+
+> 💡 *Principles inspired by "Clean Apex Code" by Pablo Gonzalez.
+> [Purchase the book](https://link.springer.com/book/10.1007/979-8-8688-1411-2) for complete coverage.*
+
+### Why Test Speed Matters
+
+Fast tests enable continuous integration. Slow tests become barriers to frequent commits.
+
+### Target Metrics
+
+| Test Type | Target Speed | Purpose |
+|-----------|--------------|---------|
+| Unit test (no DML) | < 50ms | Test pure business logic |
+| Unit test (mocked DML) | < 100ms | Test with stubbed database |
+| Integration test | < 500ms | Verify real database behavior |
+| Full scenario test | < 2000ms | End-to-end validation |
+
+### Speed Strategy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  INTEGRATION TESTS (Few)                                    │
+│  - Real DML, real triggers                                  │
+│  - Test happy path completely                               │
+│  - Slow but high confidence                                 │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  UNIT TESTS WITH MOCKS (Many)                               │
+│  - Stub database operations                                 │
+│  - Test edge cases, variations                              │
+│  - Fast, run on every save                                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Balance Reality vs Speed
+
+```apex
+// INTEGRATION TEST: Full database interaction (slower, realistic)
+@IsTest
+static void testAccountCreation_Integration() {
+    Test.startTest();
+    Account acc = new Account(Name = 'Test');
+    insert acc;
+    Test.stopTest();
+
+    Account queried = [SELECT Name, Status__c FROM Account WHERE Id = :acc.Id];
+    Assert.areEqual('Active', queried.Status__c, 'Trigger should set status');
+}
+
+// UNIT TEST: Mocked database (faster, tests logic only)
+@IsTest
+static void testAccountRules_IsHighValue() {
+    // No database interaction - tests pure logic
+    Account acc = new Account(AnnualRevenue = 1500000);
+    Assert.isTrue(AccountRules.isHighValue(acc), 'Should be high value');
+
+    Account lowValue = new Account(AnnualRevenue = 500000);
+    Assert.isFalse(AccountRules.isHighValue(lowValue), 'Should not be high value');
+}
+```
+
+### Techniques for Faster Tests
+
+| Technique | Benefit | Trade-off |
+|-----------|---------|-----------|
+| @TestSetup | Reuse data across methods | Small setup overhead |
+| Stub API | No real DML | Less realistic |
+| Selector mocking | Skip SOQL | Must trust Selector |
+| Domain class testing | Pure logic, no DB | Limited scope |
+| Avoid SeeAllData | Predictable data | Must create test data |
+
+### When to Prioritize Speed vs Reality
+
+| Scenario | Priority | Approach |
+|----------|----------|----------|
+| Business logic validation | Speed | Unit test with mocks |
+| Trigger behavior | Reality | Integration test |
+| Edge case coverage | Speed | Many unit tests |
+| Deployment validation | Reality | RunLocalTests |
+| Developer feedback loop | Speed | Fast unit tests |
+
+### Measuring Test Speed
+
+```bash
+# Run tests and view timing
+sf apex test run --test-level RunLocalTests --target-org alias --result-format human
+
+# Check individual test timing
+sf apex test get --test-run-id [id] --code-coverage --result-format json | jq '.tests[] | {name: .MethodName, time: .RunTime}'
+```
+
+### Fast Test Checklist
+
+```
+□ Is there a pure logic portion that can be unit tested?
+□ Can database operations be mocked for edge cases?
+□ Is @TestSetup reused across multiple test methods?
+□ Are tests avoiding SeeAllData=true?
+□ Are integration tests reserved for critical paths only?
+□ Can SOQL be mocked via Selector pattern?
+```
