@@ -63,14 +63,60 @@ Expert testing engineer specializing in Agentforce agent testing, topic/action c
 
 ---
 
+## ⚠️ CRITICAL: Org Requirements (Agent Testing Center)
+
+**Agent testing requires the Agent Testing Center feature**, which is NOT enabled by default in all orgs.
+
+### Required Org Features
+
+| Feature | Required For | How to Check |
+|---------|--------------|--------------|
+| **Agent Testing Center** | `sf agent test run`, `sf agent test create` | See check below |
+| **AiEvaluationDefinition metadata** | Test storage and execution | Try `sf agent test list` |
+| **Agentforce Service Agent license** | Agent creation and testing | Check Setup > Company Information > Licenses |
+| **Einstein Platform** | AI model access | Check enabled features |
+
+### Check if Agent Testing Center is Enabled
+
+```bash
+# This will fail if Agent Testing Center is not enabled
+sf agent test list --target-org [alias]
+
+# Expected errors if NOT enabled:
+# "Not available for deploy for this organization"
+# "INVALID_TYPE: Cannot use: AiEvaluationDefinition in this organization"
+```
+
+### Orgs WITHOUT Agent Testing Center
+
+| Org Type | Agent Testing | Workaround |
+|----------|---------------|------------|
+| Standard DevHub | ❌ Not available | Request feature enablement |
+| SDO Demo Orgs | ❌ Not available | Use scratch org with feature |
+| Scratch Orgs | ✅ If feature enabled | Include in scratch-def.json |
+
+### Enabling Agent Testing Center
+
+1. **Scratch Org** - Add to scratch-def.json:
+   ```json
+   {
+     "features": ["AgentTestingCenter", "EinsteinGPTForSalesforce"]
+   }
+   ```
+
+2. **Production/Sandbox** - Contact Salesforce to enable the feature
+
+---
+
 ## ⚠️ CRITICAL: Prerequisites Checklist
 
 Before running agent tests, verify:
 
 | Check | Command | Why |
 |-------|---------|-----|
+| **Agent Testing Center enabled** | `sf agent test list --target-org [alias]` | ⚠️ **CRITICAL** - tests will fail without this |
 | **Agent exists** | `sf data query --use-tooling-api --query "SELECT Id FROM BotDefinition WHERE DeveloperName='X'"` | Can't test non-existent agent |
-| **Agent published** | `sf agent list --target-org [alias]` | Must be published to test |
+| **Agent published** | `sf agent validate authoring-bundle --api-name X` | Must be published to test |
 | **Agent activated** | Check activation status | Required for preview mode |
 | **Dependencies deployed** | Flows and Apex in org | Actions will fail without them |
 | **Connected App** (live) | OAuth configured | Required for `--use-live-actions` |
@@ -95,9 +141,13 @@ Use **AskUserQuestion** to gather:
 
 ### Phase 2: Test Spec Creation
 
-**Generate Test Spec YAML**:
+**Generate Test Spec YAML** (interactive only - no `--api-name` flag exists):
 ```bash
-sf agent generate test-spec --api-name AgentName --output-dir ./tests
+# Start interactive test spec generation
+sf agent generate test-spec --output-file ./tests/agent-spec.yaml
+
+# ⚠️ NOTE: There is NO --api-name flag! The command is interactive-only.
+# You must manually input test cases through CLI prompts.
 ```
 
 **Interactive Prompts** (from CLI):
@@ -348,6 +398,160 @@ sf agent test run --api-name MyAgentTest --wait 10 --target-org [alias]
 
 ---
 
+## Automated Testing Workflow (Claude Code Integration)
+
+This skill includes Python scripts for **fully automated agent testing** within Claude Code sessions.
+
+### Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                  AUTOMATED AGENT TESTING FLOW                       │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   Agent Script  →  Test Spec Generator  →  sf agent test create    │
+│   (.agent file)    (generate-test-spec.py)    (CLI)                │
+│         │                   │                    │                  │
+│         │           Extract topics/          Deploy to             │
+│         │           actions/expected         org                   │
+│         ▼                   ▼                    ▼                  │
+│   Validation  ←───  Result Parser  ←───  sf agent test run         │
+│   Framework    (parse-agent-test-results.py)  (--result-format json)│
+│         │                │                                          │
+│         ▼                ▼                                          │
+│   Report Generator  +  Agentic Fix Loop (sf-ai-agentforce)         │
+│                                                                     │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### Prerequisites
+
+⚠️ **Agent Testing Center must be enabled in your org!**
+
+```bash
+# Check if enabled (any error = NOT enabled)
+sf agent test list --target-org [alias]
+```
+
+If NOT enabled, use `sf agent preview` as fallback (see [Fallback Options](#fallback-options)).
+
+### Scripts
+
+| Script | Purpose | Location |
+|--------|---------|----------|
+| `generate-test-spec.py` | Parse .agent files, generate YAML test specs | `hooks/scripts/` |
+| `run-automated-tests.py` | Orchestrate full test workflow | `hooks/scripts/` |
+| `parse-agent-test-results.py` | Parse JSON results, format for Claude | `hooks/scripts/` |
+
+### Usage: Generate Test Spec
+
+Automatically generate a test spec from an agent definition:
+
+```bash
+# From agent file
+python3 hooks/scripts/generate-test-spec.py \
+  --agent-file /path/to/Agent.agent \
+  --output specs/Agent-tests.yaml \
+  --verbose
+
+# From agent directory
+python3 hooks/scripts/generate-test-spec.py \
+  --agent-dir /path/to/aiAuthoringBundles/Agent/ \
+  --output specs/Agent-tests.yaml
+```
+
+**What it extracts:**
+- Topics (with labels and descriptions)
+- Actions (flow:// targets with inputs/outputs)
+- Transitions (@utils.transition patterns)
+
+**What it generates:**
+- Topic routing test cases
+- Action invocation test cases
+- Edge case tests (off-topic handling)
+
+### Usage: Full Automated Workflow
+
+Run the complete automated test workflow:
+
+```bash
+python3 hooks/scripts/run-automated-tests.py \
+  --agent-name Coffee_Shop_FAQ_Agent \
+  --agent-dir /path/to/project \
+  --target-org AgentforceScriptDemo
+```
+
+**Workflow steps:**
+1. Check if Agent Testing Center is enabled
+2. Generate test spec from agent definition
+3. Create test definition in org (`sf agent test create`)
+4. Run tests (`sf agent test run --result-format json`)
+5. Parse and display results
+6. Suggest fixes for failures (enables agentic fix loop)
+
+### Claude Code Invocation
+
+Claude Code can invoke this workflow directly:
+
+```bash
+# Run automated tests
+python3 ~/.claude/plugins/cache/sf-skills/.../sf-ai-agentforce-testing/hooks/scripts/run-automated-tests.py \
+  --agent-name MyAgent \
+  --agent-file /path/to/MyAgent.agent \
+  --target-org dev
+
+# Or generate spec only
+python3 ~/.claude/plugins/cache/sf-skills/.../sf-ai-agentforce-testing/hooks/scripts/generate-test-spec.py \
+  --agent-file /path/to/MyAgent.agent \
+  --output /tmp/MyAgent-tests.yaml
+```
+
+### Fallback Options
+
+If Agent Testing Center is NOT available:
+
+1. **sf agent preview (Recommended Fallback)**
+   ```bash
+   sf agent preview --api-name MyAgent --output-dir ./transcripts --target-org [alias]
+   ```
+   - Interactive testing, no special features required
+   - Use `--output-dir` to save transcripts for manual review
+
+2. **Manual Testing with Generated Spec**
+   - Generate spec: `python3 generate-test-spec.py --agent-file X --output spec.yaml`
+   - Review spec and manually test each utterance in preview
+
+### Test Spec Template
+
+Use `templates/standard-test-spec.yaml` as a starting point:
+
+```yaml
+subjectType: AGENT
+subjectName: <Agent_Name>
+
+testCases:
+  # Topic routing tests
+  - utterance: "What's on your menu?"
+    expectation:
+      topic: coffee_faq
+      actionSequence: []
+
+  # Action invocation tests
+  - utterance: "Can you search for Harry Potter?"
+    expectation:
+      topic: book_search
+      actionSequence:
+        - search_book_catalog
+
+  # Edge cases
+  - utterance: "What's the weather today?"
+    expectation:
+      topic: topic_selector
+      actionSequence: []
+```
+
+---
+
 ## Test Spec YAML Format
 
 ### Basic Structure
@@ -530,25 +734,29 @@ When using `sf agent preview --output-dir ./logs`:
 ## Example: Complete Test Workflow
 
 ```bash
-# 1. Verify agent is published
-sf agent list --target-org dev
+# ⚠️ PREREQUISITE: Check if Agent Testing Center is enabled
+sf agent test list --target-org dev
+# If you get "Not available for deploy" or "INVALID_TYPE" error, Agent Testing Center is NOT enabled!
 
-# 2. Generate test spec
-sf agent generate test-spec --api-name Customer_Support_Agent --output-dir ./tests
+# 1. Verify agent is published (sf agent list doesn't exist - use SOQL)
+sf data query --use-tooling-api --query "SELECT Id, DeveloperName FROM BotDefinition WHERE DeveloperName='Customer_Support_Agent'" --target-org dev
 
-# 3. Edit test spec (add test cases)
-# Edit ./tests/agentTestSpec.yaml
+# 2. Generate test spec (interactive only - no --api-name flag!)
+sf agent generate test-spec --output-file ./tests/agentTestSpec.yaml
+# Follow interactive prompts to add test cases
 
-# 4. Create test in org
+# 3. (Alternative) Create test spec manually - see templates/comprehensive-test-spec.yaml
+
+# 4. Create test in org (requires Agent Testing Center)
 sf agent test create --spec ./tests/agentTestSpec.yaml --api-name CustomerSupportTests --target-org dev
 
-# 5. Run tests with wait
+# 5. Run tests with wait (requires Agent Testing Center)
 sf agent test run --api-name CustomerSupportTests --wait 10 --result-format json --target-org dev
 
 # 6. View detailed results
 sf agent test results --use-most-recent --verbose --result-format json --target-org dev
 
-# 7. Interactive preview for exploration
+# 7. Interactive preview (works WITHOUT Agent Testing Center - good fallback!)
 sf agent preview --api-name Customer_Support_Agent --output-dir ./logs --target-org dev
 
 # 8. Live preview with real actions

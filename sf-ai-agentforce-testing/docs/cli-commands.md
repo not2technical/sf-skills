@@ -4,22 +4,41 @@ Complete reference for SF CLI commands related to Agentforce testing.
 
 ---
 
+## ⚠️ CRITICAL: Agent Testing Center Required
+
+**All `sf agent test` commands require Agent Testing Center feature enabled in your org.**
+
+```bash
+# Check if Agent Testing Center is enabled
+sf agent test list --target-org [alias]
+
+# If you get these errors, Agent Testing Center is NOT enabled:
+# ❌ "Not available for deploy for this organization"
+# ❌ "INVALID_TYPE: Cannot use: AiEvaluationDefinition in this organization"
+```
+
+See [SKILL.md](../SKILL.md#-critical-org-requirements-agent-testing-center) for enabling this feature.
+
+---
+
 ## Command Overview
 
 ```
 sf agent test
-├── create          Create agent test in org from spec
-├── list            List available test runs
-├── run             Start agent test execution
+├── create          Create agent test in org from spec (requires Agent Testing Center)
+├── list            List available test definitions (requires Agent Testing Center)
+├── run             Start agent test execution (requires Agent Testing Center)
 ├── results         Get completed test results
 └── resume          Resume incomplete test run
 
 sf agent
-├── preview         Interactive agent testing
+├── preview         Interactive agent testing (works without Agent Testing Center)
 ├── generate
-│   └── test-spec   Generate test specification YAML
+│   └── test-spec   Generate test specification YAML (interactive only - no --api-name flag)
 └── (other agent commands in sf-ai-agentforce)
 ```
+
+**Note:** `sf agent preview` works WITHOUT Agent Testing Center - useful for manual testing when automated tests are unavailable.
 
 ---
 
@@ -27,11 +46,13 @@ sf agent
 
 ### sf agent generate test-spec
 
-Generate a YAML test specification interactively.
+Generate a YAML test specification **interactively** (no batch/scripted mode available).
 
 ```bash
 sf agent generate test-spec [--output-file <path>]
 ```
+
+**⚠️ Important:** This command is **interactive only**. There is no `--api-name` flag to auto-generate from an existing agent. You must manually input test cases through the prompts.
 
 **Flags:**
 
@@ -39,6 +60,11 @@ sf agent generate test-spec [--output-file <path>]
 |------|-------------|
 | `--output-file` | Path for generated YAML (default: `specs/agentTestSpec.yaml`) |
 | `--api-version` | Override API version |
+
+**⛔ Non-existent flags (DO NOT USE):**
+- `--api-name` - Does NOT exist (common misconception)
+- `--agent-name` - Does NOT exist
+- `--from-agent` - Does NOT exist
 
 **Interactive Prompts:**
 

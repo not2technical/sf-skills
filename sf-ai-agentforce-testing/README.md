@@ -43,20 +43,26 @@ Request: "Run agent tests for Customer_Support_Agent in org dev"
 
 ## Key Commands
 
-```bash
-# Generate test specification
-sf agent generate test-spec --api-name AgentName --output-dir ./tests
+⚠️ **Agent Testing Center Required**: Commands marked with 🔒 require Agent Testing Center feature enabled in org.
 
-# Create test in org
+```bash
+# Check if Agent Testing Center is available
+sf agent test list --target-org [alias]
+# Error "INVALID_TYPE" or "Not available" = NOT enabled
+
+# Generate test specification (interactive only - no --api-name flag)
+sf agent generate test-spec --output-file ./tests/spec.yaml
+
+# 🔒 Create test in org (requires Agent Testing Center)
 sf agent test create --spec ./tests/spec.yaml --target-org [alias]
 
-# Run agent tests
+# 🔒 Run agent tests (requires Agent Testing Center)
 sf agent test run --api-name AgentName --wait 10 --result-format json --target-org [alias]
 
 # Get test results
 sf agent test results --job-id JOB_ID --result-format json --target-org [alias]
 
-# Interactive preview (simulated)
+# Interactive preview (works WITHOUT Agent Testing Center)
 sf agent preview --api-name AgentName --target-org [alias]
 
 # Interactive preview (live actions)
