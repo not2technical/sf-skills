@@ -467,14 +467,14 @@ Each skill includes validation hooks that run automatically on **Write** and **E
 
 | | Skill | File Type | Validation |
 |--|-------|-----------|------------|
-| ⚡ | sf-apex | `*.cls`, `*.trigger` | 150-pt scoring + Code Analyzer + LSP |
+| ⚡ | sf-apex | `*.cls`, `*.trigger` | 150-pt scoring + Code Analyzer + LSP + Live Query Plan |
 | 🔄 | sf-flow | `*.flow-meta.xml` | 110-pt scoring + Flow Scanner |
 | ⚡ | sf-lwc | `*.js`, `*.html` (LWC) | 140-pt scoring + Code Analyzer + LSP |
-| 🔍 | sf-soql | `*.soql` | 100-pt scoring + selectivity checks |
+| 🔍 | sf-soql | `*.soql` | 100-pt scoring + **Live Query Plan API** |
 | 🧪 | sf-testing | `*Test.cls` | 100-pt scoring + coverage analysis |
 | 🐛 | sf-debug | Debug logs | 90-pt scoring + governor analysis |
 | 📋 | sf-metadata | `*.object-meta.xml`, `*.field-meta.xml` | Metadata best practices |
-| 💾 | sf-data | `*.apex`, `*.soql` | SOQL patterns, governor limits |
+| 💾 | sf-data | `*.apex`, `*.soql` | SOQL patterns + Live Query Plan |
 | 🤖 | sf-ai-agentforce | `*.agent`, `*.genAiFunction-meta.xml` | Agent Script syntax + LSP |
 | 🧪 | sf-ai-agentforce-testing | Test spec YAML | 100-pt scoring + fix loops |
 | 🔐 | sf-connected-apps | `*.connectedApp-meta.xml` | OAuth security |
@@ -502,6 +502,38 @@ Hooks integrate [Salesforce Code Analyzer V5](https://developer.salesforce.com/d
 | **LWC** (140-pt) | ESLint + retire-js + SLDS Linter | SLDS 2 Compliance, Naming, Accessibility, Component Patterns, Lightning Message Service, Security |
 
 **Graceful Degradation:** If dependencies are missing, hooks run custom validation only and show which engines were skipped.
+
+#### 🌐 Live SOQL Query Plan Analysis
+
+Skills integrate with Salesforce's **REST API explain endpoint** to provide real-time query plan analysis:
+
+| Metric | Description | Threshold |
+|--------|-------------|-----------|
+| **relativeCost** | Query selectivity score | ≤1.0 = selective ✅, >1.0 = non-selective ⚠️ |
+| **leadingOperationType** | How Salesforce executes the query | Index, TableScan, Sharing |
+| **cardinality** | Estimated rows returned | vs. total records in object |
+| **notes[]** | WHY optimizations aren't being used | Index suggestions, filter issues |
+
+**How It Works:**
+1. When you write a `.soql`, `.cls`, or `.trigger` file, the hook extracts SOQL queries
+2. Calls `sf data query --plan` to invoke the Salesforce explain API
+3. Returns actual query execution plan from your connected org
+4. Provides optimization suggestions based on plan notes
+
+**Sample Output:**
+```
+🌐 Live Query Plan Analysis (Org: my-dev-org)
+   L42: ✅ Cost 0.3 (Index)
+   L78: ⚠️ Cost 2.1 (TableScan) ⚠️ IN LOOP
+      📝 Field Status__c is not indexed
+```
+
+**Skills with Live Query Plan:**
+- **sf-soql** — `.soql` files (entire file analyzed)
+- **sf-apex** — `.cls`, `.trigger` files (extracts inline `[SELECT...]` and `Database.query()`)
+- **sf-data** — `.soql` files for data operations
+
+**Prerequisites:** Connected Salesforce org (`sf org login web`). Falls back to static analysis if no org connected.
 
 #### 🔤 Language Server Protocol (LSP) Integration
 
