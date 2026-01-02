@@ -1,154 +1,217 @@
 #!/usr/bin/env python3
 """
-Cross-Skill Suggestion Hook for sf-skills
+Cross-Skill Suggestion Hook for sf-skills (v3.0)
 
-Analyzes file operations and suggests related skills based on:
-- File type patterns
-- Content patterns (triggers like @InvocableMethod, @AuraEnabled)
-- Relationship matrix from skill-relationships.json
+Enhanced skill suggestion system that:
+- Reads from unified skills-registry.json
+- Accepts optional skill name as CLI argument
+- Adds confidence levels (REQUIRED/RECOMMENDED/OPTIONAL)
+- Detects orchestration chains
+- Persists context for inter-skill communication
 
-Usage: Called automatically via PostToolUse hook on Write|Edit operations.
+Usage:
+  python3 suggest-related-skills.py [skill-name]
 
-Output: JSON with additionalContext containing skill suggestions.
+Called automatically via PostToolUse hook on Write|Edit operations.
 """
 
 import json
 import os
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 # Configuration
 MAX_SUGGESTIONS = 3
 SCRIPT_DIR = Path(__file__).parent
-RELATIONSHIPS_FILE = SCRIPT_DIR / "skill-relationships.json"
+REGISTRY_FILE = SCRIPT_DIR / "skills-registry.json"
+CONTEXT_FILE = Path("/tmp/sf-skills-context.json")
 
-# Cache for relationships config
-_relationships_cache: Optional[dict] = None
+# Cache for registry config
+_registry_cache: Optional[dict] = None
 
 
-def load_relationships() -> dict:
-    """Load the skill relationships configuration."""
-    global _relationships_cache
-    if _relationships_cache is not None:
-        return _relationships_cache
+def load_registry() -> dict:
+    """Load the unified skills registry configuration."""
+    global _registry_cache
+    if _registry_cache is not None:
+        return _registry_cache
 
     try:
-        with open(RELATIONSHIPS_FILE, 'r') as f:
-            _relationships_cache = json.load(f)
-            return _relationships_cache
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {"file_patterns": {}, "relationships": {}}
+        with open(REGISTRY_FILE, 'r') as f:
+            _registry_cache = json.load(f)
+            return _registry_cache
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        # Fallback to empty config
+        return {"skills": {}, "chains": {}, "confidence_levels": {}}
 
 
-def detect_skill_from_file(file_path: str, config: dict) -> Optional[str]:
-    """Detect which skill owns this file based on patterns."""
-    file_patterns = config.get("file_patterns", {})
+def load_context() -> dict:
+    """Load previous skill context for chain awareness."""
+    try:
+        if CONTEXT_FILE.exists():
+            with open(CONTEXT_FILE, 'r') as f:
+                return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        pass
+    return {}
 
-    for pattern_group in file_patterns.values():
-        patterns = pattern_group.get("patterns", [])
+
+def save_context(skill: str, file_path: str, triggers: list[str], suggestions: list[dict]):
+    """Save current context for next skill invocation."""
+    context = {
+        "timestamp": datetime.now().isoformat(),
+        "last_skill": skill,
+        "last_file": file_path,
+        "detected_triggers": triggers,
+        "suggested_next": [s["skill"] for s in suggestions if s["type"] == "after"][:2]
+    }
+    try:
+        with open(CONTEXT_FILE, 'w') as f:
+            json.dump(context, f, indent=2)
+    except IOError:
+        pass  # Context saving is optional
+
+
+def detect_skill_from_file(file_path: str, registry: dict) -> Optional[str]:
+    """Detect which skill owns this file based on filePatterns."""
+    skills = registry.get("skills", {})
+
+    for skill_name, skill_config in skills.items():
+        patterns = skill_config.get("filePatterns", [])
         for pattern in patterns:
             if re.search(pattern, file_path, re.IGNORECASE):
-                return pattern_group.get("skill")
+                return skill_name
 
     return None
 
 
-def detect_content_triggers(file_path: str, content: str) -> list[str]:
-    """Detect trigger patterns in file content."""
+def detect_content_triggers(content: str, skill_config: dict) -> list[str]:
+    """Detect trigger patterns in file content using skill's contentTriggers."""
     triggers = []
 
-    # Apex patterns
-    if re.search(r"@InvocableMethod", content):
-        triggers.append("@InvocableMethod")
-    if re.search(r"@AuraEnabled", content):
-        triggers.append("@AuraEnabled")
-    if re.search(r"@IsTest|testMethod", content):
-        triggers.append("test")
-    if re.search(r"implements\s+Queueable", content):
-        triggers.append("Queueable")
-    if re.search(r"HttpRequest|HttpResponse|callout", content, re.IGNORECASE):
-        triggers.append("callout")
+    # Check skill-specific content triggers
+    content_triggers = skill_config.get("contentTriggers", {})
+    for pattern, _ in content_triggers.items():
+        if re.search(pattern, content, re.IGNORECASE):
+            triggers.append(pattern)
 
-    # LWC patterns
-    if re.search(r"import.*@salesforce/apex", content):
-        triggers.append("apex_import")
-    if re.search(r"lightning__FlowScreen", content):
-        triggers.append("FlowScreen")
-    if re.search(r"FlowAttributeChangeEvent|FlowNavigationFinishEvent", content):
-        triggers.append("FlowAttributeChangeEvent")
-    if re.search(r"@salesforce/messageChannel", content):
-        triggers.append("message_channel")
+    # Also detect common patterns (for backwards compatibility)
+    common_patterns = [
+        (r"@InvocableMethod", "@InvocableMethod"),
+        (r"@AuraEnabled", "@AuraEnabled"),
+        (r"@IsTest|testMethod", "@IsTest"),
+        (r"implements\s+Queueable", "Queueable"),
+        (r"implements\s+Batchable", "Batchable"),
+        (r"implements\s+Schedulable", "Schedulable"),
+        (r"HttpRequest|HttpResponse", "callout"),
+        (r"import.*@salesforce/apex", "apex_import"),
+        (r"lightning__FlowScreen", "FlowScreen"),
+        (r"FlowAttributeChangeEvent", "FlowAttributeChangeEvent"),
+        (r"@salesforce/messageChannel", "message_channel"),
+        (r"actionType.*apex|actionCalls", "apex_action"),
+        (r"ComponentInstance|extensionName", "ComponentInstance"),
+        (r"processType.*AutoLaunchedFlow", "AutoLaunchedFlow"),
+        (r"RecordAfterSave|RecordBeforeSave", "record_triggered"),
+        (r"CustomObject|CustomField", "custom_object"),
+        (r"flow://", "flow_target"),
+        (r"failure|failed|FAIL", "failure"),
+        (r"Assert\.|System\.assert", "Assert"),
+        (r"bulk|200\+|251", "bulk"),
+    ]
 
-    # Flow patterns
-    if re.search(r"actionType.*apex|actionCalls", content):
-        triggers.append("apex_action")
-    if re.search(r"ComponentInstance|extensionName", content):
-        triggers.append("ComponentInstance")
-    if re.search(r"processType.*AutoLaunchedFlow", content):
-        triggers.append("AutoLaunchedFlow")
-    if re.search(r"processType.*Flow.*RecordAfterSave|RecordBeforeSave", content):
-        triggers.append("record_triggered")
-
-    # Metadata patterns
-    if re.search(r"CustomObject|CustomField", content):
-        triggers.append("custom_object")
-
-    # Agent patterns
-    if re.search(r"flow://", content):
-        triggers.append("flow_target")
+    for pattern, trigger_name in common_patterns:
+        if re.search(pattern, content, re.IGNORECASE):
+            if trigger_name not in triggers:
+                triggers.append(trigger_name)
 
     return triggers
 
 
-def get_suggestions(skill: str, triggers: list[str], config: dict) -> list[dict]:
+def detect_chain(context: dict, current_skill: str, registry: dict) -> Optional[dict]:
+    """Detect if we're in an orchestration chain."""
+    chains = registry.get("chains", {})
+    last_skill = context.get("last_skill")
+
+    if not last_skill:
+        return None
+
+    for chain_name, chain_config in chains.items():
+        order = chain_config.get("order", [])
+        if last_skill in order and current_skill in order:
+            last_idx = order.index(last_skill)
+            current_idx = order.index(current_skill)
+
+            # Check if we're progressing in the chain
+            if current_idx == last_idx + 1 or current_idx > last_idx:
+                return {
+                    "name": chain_name,
+                    "description": chain_config.get("description", ""),
+                    "order": order,
+                    "current_step": current_idx + 1,
+                    "total_steps": len(order),
+                    "next_skills": order[current_idx + 1:current_idx + 3]
+                }
+
+    return None
+
+
+def get_suggestions(skill: str, triggers: list[str], registry: dict) -> list[dict]:
     """Get skill suggestions based on detected skill and triggers."""
     suggestions = []
-    relationships = config.get("relationships", {}).get(skill, {})
+    skill_config = registry.get("skills", {}).get(skill, {})
+    orchestration = skill_config.get("orchestration", {})
 
-    # After creating suggestions
-    after_creating = relationships.get("after_creating", [])
-    for suggestion in after_creating:
-        if suggestion.get("condition") == "always" or any(
-            t in triggers for t in suggestion.get("condition", "").split("|")
-        ):
-            suggestions.append({
-                "type": "after",
-                "skill": suggestion["skill"],
-                "message": suggestion["message"],
-                "priority": suggestion.get("priority", 99)
-            })
-
-    # Commonly used with (based on triggers)
-    commonly_with = relationships.get("commonly_with", [])
-    for suggestion in commonly_with:
-        trigger_pattern = suggestion.get("trigger", "")
-        if trigger_pattern == "always" or any(
-            re.search(trigger_pattern, t, re.IGNORECASE) for t in triggers
-        ):
-            suggestions.append({
-                "type": "with",
-                "skill": suggestion["skill"],
-                "message": suggestion["message"],
-                "priority": suggestion.get("priority", 99)
-            })
-
-    # Before this suggestions (prerequisites)
-    before_this = relationships.get("before_this", [])
-    for suggestion in before_this:
-        condition = suggestion.get("condition", "")
+    # Prerequisites (before_this)
+    prerequisites = orchestration.get("prerequisites", [])
+    for prereq in prerequisites:
+        condition = prereq.get("condition", "always")
         if condition == "always" or any(
             re.search(condition, t, re.IGNORECASE) for t in triggers
         ):
             suggestions.append({
                 "type": "before",
-                "skill": suggestion["skill"],
-                "message": suggestion["message"],
-                "priority": suggestion.get("priority", 0)
+                "skill": prereq["skill"],
+                "message": prereq["message"],
+                "confidence": prereq.get("confidence", 2),
+                "priority": 0  # Prerequisites come first
             })
 
-    # Sort by priority and deduplicate
+    # Next steps (after_creating)
+    next_steps = orchestration.get("next_steps", [])
+    for step in next_steps:
+        condition = step.get("condition", "always")
+        if condition == "always" or any(
+            re.search(condition, t, re.IGNORECASE) for t in triggers
+        ):
+            suggestions.append({
+                "type": "after",
+                "skill": step["skill"],
+                "message": step["message"],
+                "confidence": step.get("confidence", 2),
+                "priority": step.get("confidence", 2)
+            })
+
+    # Commonly used with (based on triggers)
+    commonly_with = orchestration.get("commonly_with", [])
+    for related in commonly_with:
+        trigger_pattern = related.get("trigger", "always")
+        if trigger_pattern == "always" or any(
+            re.search(trigger_pattern, t, re.IGNORECASE) for t in triggers
+        ):
+            # Don't duplicate suggestions
+            if related["skill"] not in [s["skill"] for s in suggestions]:
+                suggestions.append({
+                    "type": "with",
+                    "skill": related["skill"],
+                    "message": related["message"],
+                    "confidence": related.get("confidence", 1),
+                    "priority": 10 + related.get("confidence", 1)
+                })
+
+    # Sort by priority (lower = higher priority) and deduplicate
     seen_skills = set()
     unique_suggestions = []
     for s in sorted(suggestions, key=lambda x: x["priority"]):
@@ -159,35 +222,66 @@ def get_suggestions(skill: str, triggers: list[str], config: dict) -> list[dict]
     return unique_suggestions[:MAX_SUGGESTIONS]
 
 
-def format_suggestions(suggestions: list[dict], current_skill: str) -> str:
-    """Format suggestions as readable text."""
-    if not suggestions:
+def format_suggestions(suggestions: list[dict], current_skill: str, chain: Optional[dict], registry: dict) -> str:
+    """Format suggestions as readable text with confidence levels."""
+    if not suggestions and not chain:
         return ""
 
-    lines = [f"\n{'─' * 50}", f"🔗 Related Skills (working with {current_skill})", f"{'─' * 50}"]
+    confidence_levels = registry.get("confidence_levels", {
+        "3": {"icon": "***", "label": "REQUIRED"},
+        "2": {"icon": "**", "label": "RECOMMENDED"},
+        "1": {"icon": "*", "label": "OPTIONAL"}
+    })
 
-    type_icons = {
-        "before": "⚠️  PREREQUISITE",
-        "after": "➡️  NEXT STEP",
-        "with": "🔄 RELATED"
+    lines = [f"\n{'═' * 54}"]
+    lines.append(f"🔗 SKILL SUGGESTIONS (working with {current_skill})")
+    lines.append(f"{'═' * 54}")
+
+    # Show chain progress if detected
+    if chain:
+        step = chain["current_step"]
+        total = chain["total_steps"]
+        chain_name = chain["name"]
+        lines.append(f"\n📋 DETECTED WORKFLOW: {chain_name}")
+        lines.append(f"   Step {step} of {total}: {current_skill}")
+        if chain["next_skills"]:
+            next_str = " → ".join(chain["next_skills"])
+            lines.append(f"   Next: {next_str}")
+        lines.append("")
+
+    type_labels = {
+        "before": ("⚠️", "PREREQUISITE"),
+        "after": ("➡️", "NEXT STEP"),
+        "with": ("🔄", "RELATED")
     }
 
     for s in suggestions:
-        icon = type_icons.get(s["type"], "💡")
-        lines.append(f"{icon}: {s['skill']}")
+        icon, type_label = type_labels.get(s["type"], ("💡", "SUGGESTION"))
+        conf = s.get("confidence", 2)
+        conf_info = confidence_levels.get(str(conf), {"icon": "**", "label": "RECOMMENDED"})
+        conf_stars = conf_info["icon"]
+        conf_label = conf_info["label"]
+
+        lines.append(f"{icon} {type_label}: /{s['skill']} {conf_stars} {conf_label}")
         lines.append(f"   └─ {s['message']}")
 
-    lines.append(f"{'─' * 50}\n")
+    lines.append(f"{'─' * 54}")
+    lines.append("💡 Invoke with /skill-name or ask Claude to use it")
+    lines.append(f"{'═' * 54}\n")
 
     return "\n".join(lines)
 
 
 def main():
     """Main entry point for the hook."""
+    # Check for skill name passed as argument
+    cli_skill = sys.argv[1] if len(sys.argv) > 1 else None
+
     try:
         # Read hook input from stdin
         input_data = json.load(sys.stdin)
     except (json.JSONDecodeError, EOFError):
+        # If no stdin, exit silently
         sys.exit(0)
 
     # Get file path from tool input
@@ -202,12 +296,18 @@ def main():
     if not file_path:
         sys.exit(0)
 
-    # Load relationships config
-    config = load_relationships()
+    # Load registry and context
+    registry = load_registry()
+    context = load_context()
 
-    # Detect the skill from file pattern
-    current_skill = detect_skill_from_file(file_path, config)
+    # Detect the skill from file pattern (or use CLI argument)
+    current_skill = cli_skill or detect_skill_from_file(file_path, registry)
     if not current_skill:
+        sys.exit(0)
+
+    # Get skill config
+    skill_config = registry.get("skills", {}).get(current_skill, {})
+    if not skill_config:
         sys.exit(0)
 
     # Read full file content if we only have partial content
@@ -219,16 +319,22 @@ def main():
             pass
 
     # Detect content triggers
-    triggers = detect_content_triggers(file_path, content)
+    triggers = detect_content_triggers(content, skill_config)
+
+    # Detect if we're in a chain
+    chain = detect_chain(context, current_skill, registry)
 
     # Get suggestions
-    suggestions = get_suggestions(current_skill, triggers, config)
+    suggestions = get_suggestions(current_skill, triggers, registry)
 
-    if not suggestions:
+    # Save context for next skill
+    save_context(current_skill, file_path, triggers, suggestions)
+
+    if not suggestions and not chain:
         sys.exit(0)
 
     # Format output
-    formatted = format_suggestions(suggestions, current_skill)
+    formatted = format_suggestions(suggestions, current_skill, chain, registry)
 
     # Output as JSON for Claude
     output = {
