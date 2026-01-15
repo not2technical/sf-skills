@@ -1,0 +1,20 @@
+{
+  "name": "sf-weather-api",
+  "version": "1.0.0",
+  "description": "Integrates Visual Crossing Weather API with Salesforce. Use when implementing weather-based business logic, retrieving current conditions, accessing forecasts, or incorporating weather data into Salesforce applications.",
+  "author": {
+    "name": "August Krys",
+    "url": "https://github.com/not2technical"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/not2technical/sf-skills",
+  "keywords": [
+    "salesforce",
+    "weather-api",
+    "visual-crossing",
+    "integration",
+    "named-credentials",
+    "external-api",
+    "claude-code"
+  ]
+}

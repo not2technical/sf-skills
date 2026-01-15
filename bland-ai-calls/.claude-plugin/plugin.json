@@ -1,0 +1,21 @@
+{
+  "name": "bland-ai-calls",
+  "version": "1.0.0",
+  "description": "Integrates Bland AI phone calls with Salesforce. Use when automating outbound calls, handling call webhooks, implementing appointment reminders, or integrating conversational AI calling capabilities into Salesforce workflows.",
+  "author": {
+    "name": "August Krys",
+    "url": "https://github.com/not2technical"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/not2technical/sf-skills",
+  "keywords": [
+    "salesforce",
+    "bland-ai",
+    "phone-calls",
+    "webhooks",
+    "automation",
+    "conversational-ai",
+    "claude-code",
+    "integration"
+  ]
+}
