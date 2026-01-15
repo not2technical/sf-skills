@@ -2,16 +2,24 @@
 #
 # configure-named-credential.sh
 #
-# Reusable script to configure Named Credential API keys/passwords programmatically
-# Avoids manual UI configuration while keeping credentials secure (not in source control)
+# Modern script to configure Enhanced Named Credentials with External Credentials
+# Uses ConnectApi.NamedCredentials.createCredential() for secure credential storage
+#
+# PREREQUISITES:
+#   1. External Credential metadata deployed (.externalCredential-meta.xml)
+#   2. Named Credential metadata deployed (.namedCredential-meta.xml)
+#   3. CSP Trusted Site OR Remote Site Setting deployed
 #
 # Usage:
-#   ./configure-named-credential.sh <credential-name> <org-alias>
+#   ./configure-named-credential.sh <external-credential-name> <principal-name> <org-alias>
 #
 # Example:
-#   ./configure-named-credential.sh Bland_AI_API AIZoom
+#   ./configure-named-credential.sh VisualCrossingWeather weatherAPIKey AIZoom
 #
-# The script will prompt for the API key/password securely (won't echo to terminal)
+# The script will:
+#   1. Prompt for API key securely (won't echo to terminal)
+#   2. Generate Apex code to configure the credential
+#   3. Execute the Apex code to store the credential securely
 #
 
 set -e  # Exit on error
@@ -21,35 +29,48 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Usage function
 usage() {
     echo -e "${BLUE}Usage:${NC}"
-    echo "  $0 <credential-name> <org-alias>"
+    echo "  $0 <external-credential-name> <principal-name> <org-alias>"
+    echo ""
+    echo -e "${BLUE}Parameters:${NC}"
+    echo "  external-credential-name  - Developer name of the External Credential"
+    echo "  principal-name           - Principal name (from External Credential metadata)"
+    echo "  org-alias                - Org alias for deployment"
     echo ""
     echo -e "${BLUE}Example:${NC}"
-    echo "  $0 Bland_AI_API AIZoom"
+    echo "  $0 VisualCrossingWeather weatherAPIKey AIZoom"
     echo ""
-    echo -e "${BLUE}Available Named Credentials in this project:${NC}"
-    find . -name "*.namedCredential-meta.xml" -type f 2>/dev/null | while read file; do
-        basename "$file" .namedCredential-meta.xml | sed 's/^/  - /'
+    echo -e "${BLUE}Available External Credentials in this project:${NC}"
+    find . -name "*.externalCredential-meta.xml" -type f 2>/dev/null | while read file; do
+        basename "$file" .externalCredential-meta.xml | sed 's/^/  - /'
     done
     echo ""
     echo -e "${BLUE}Available Orgs:${NC}"
     sf org list --json 2>/dev/null | jq -r '.result.nonScratchOrgs[]? | "  - \(.alias // .username) (\(.username))"' 2>/dev/null || echo "  Run 'sf org list' to see available orgs"
+    echo ""
+    echo -e "${CYAN}Order of Operations:${NC}"
+    echo "  1. Deploy External Credential metadata"
+    echo "  2. Deploy Named Credential metadata (references External Credential)"
+    echo "  3. Deploy CSP Trusted Site OR Remote Site Setting"
+    echo "  4. Run THIS script to set the API key"
     exit 1
 }
 
 # Check arguments
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
     echo -e "${RED}Error: Wrong number of arguments${NC}"
     echo ""
     usage
 fi
 
-CREDENTIAL_NAME=$1
-ORG_ALIAS=$2
+EXTERNAL_CREDENTIAL_NAME=$1
+PRINCIPAL_NAME=$2
+ORG_ALIAS=$3
 
 # Validate sf CLI is installed
 if ! command -v sf &> /dev/null; then
@@ -58,19 +79,54 @@ if ! command -v sf &> /dev/null; then
     exit 1
 fi
 
+# Banner
+echo -e "${CYAN}"
+cat << 'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║     Enhanced Named Credential Configuration Tool            ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+EOF
+echo -e "${NC}"
+
 # Validate org exists
-echo -e "${BLUE}Validating org connection...${NC}"
+echo -e "${BLUE}► Validating org connection...${NC}"
 if ! sf org display --target-org "$ORG_ALIAS" &> /dev/null; then
-    echo -e "${RED}Error: Cannot connect to org '$ORG_ALIAS'${NC}"
+    echo -e "${RED}✗ Cannot connect to org '$ORG_ALIAS'${NC}"
     echo "Run: sf org list"
     exit 1
 fi
 
 echo -e "${GREEN}✓ Connected to org: $ORG_ALIAS${NC}"
+echo ""
+
+# Verify External Credential exists
+echo -e "${BLUE}► Checking External Credential...${NC}"
+EXT_CRED_CHECK=$(sf data query \
+    --query "SELECT Id, DeveloperName FROM ExternalCredential WHERE DeveloperName = '$EXTERNAL_CREDENTIAL_NAME' LIMIT 1" \
+    --target-org "$ORG_ALIAS" \
+    --json 2>&1 || echo '{"status":1}')
+
+EXT_CRED_ID=$(echo "$EXT_CRED_CHECK" | jq -r '.result.records[0].Id // empty' 2>/dev/null)
+
+if [ -z "$EXT_CRED_ID" ]; then
+    echo -e "${RED}✗ External Credential '$EXTERNAL_CREDENTIAL_NAME' not found${NC}"
+    echo ""
+    echo "Deploy it first:"
+    echo "  sf project deploy start --source-dir force-app/main/default/externalCredentials/${EXTERNAL_CREDENTIAL_NAME}.externalCredential-meta.xml --target-org $ORG_ALIAS"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Found External Credential (ID: $EXT_CRED_ID)${NC}"
+echo ""
 
 # Prompt for API key (securely - won't echo to terminal)
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}Enter API Key for '$EXTERNAL_CREDENTIAL_NAME'${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${YELLOW}Enter the API key/password for '$CREDENTIAL_NAME':${NC}"
+echo -e "${BLUE}API Key (input hidden):${NC}"
 read -s API_KEY
 echo ""
 
@@ -79,82 +135,102 @@ if [ -z "$API_KEY" ]; then
     exit 1
 fi
 
-# Update Named Credential
-echo -e "${BLUE}Updating Named Credential...${NC}"
+echo -e "${GREEN}✓ API key received${NC}"
+echo ""
 
-# Method 1: Try using Tooling API (most reliable)
-UPDATE_RESULT=$(sf data query \
-    --query "SELECT Id, DeveloperName FROM NamedCredential WHERE DeveloperName = '$CREDENTIAL_NAME'" \
-    --target-org "$ORG_ALIAS" \
-    --json 2>/dev/null || echo '{"status":1}')
+# Generate Apex code to configure credential
+echo -e "${BLUE}► Generating Apex code to configure credential...${NC}"
 
-RECORD_ID=$(echo "$UPDATE_RESULT" | jq -r '.result.records[0].Id // empty' 2>/dev/null)
+TEMP_APEX=$(mktemp /tmp/set-credential-XXXXXX.apex)
 
-if [ -z "$RECORD_ID" ]; then
-    echo -e "${RED}Error: Named Credential '$CREDENTIAL_NAME' not found in org '$ORG_ALIAS'${NC}"
+cat > "$TEMP_APEX" << EOF
+// Auto-generated by configure-named-credential.sh
+// Configures External Credential: $EXTERNAL_CREDENTIAL_NAME
+
+// Define the new credential input
+ConnectApi.CredentialInput newCredentials = new ConnectApi.CredentialInput();
+
+// Specify the External Credential
+newCredentials.externalCredential = '$EXTERNAL_CREDENTIAL_NAME';
+
+// Set authentication protocol
+newCredentials.authenticationProtocol = ConnectApi.CredentialAuthenticationProtocol.Custom;
+
+// Define the principal
+newCredentials.principalType = ConnectApi.CredentialPrincipalType.NamedPrincipal;
+newCredentials.principalName = '$PRINCIPAL_NAME';
+
+// Create credentials map
+Map<String, ConnectApi.CredentialValueInput> creds = new Map<String, ConnectApi.CredentialValueInput>();
+
+// Create API key parameter
+ConnectApi.CredentialValueInput apiKeyParam = new ConnectApi.CredentialValueInput();
+apiKeyParam.encrypted = true; // Required for security
+apiKeyParam.value = '$API_KEY';
+
+// Add to credentials map
+creds.put('apiKey', apiKeyParam);
+
+// Assign to credential input
+newCredentials.credentials = creds;
+
+try {
+    // Create the credential (first-time setup)
+    ConnectApi.NamedCredentials.createCredential(newCredentials);
+    System.debug('✓ External Credential configured successfully!');
+    System.debug('Principal: $PRINCIPAL_NAME');
+} catch (Exception e) {
+    // If already exists, try patching instead
+    if (e.getMessage().contains('already exists')) {
+        try {
+            ConnectApi.NamedCredentials.patchCredential(newCredentials);
+            System.debug('✓ External Credential updated successfully!');
+            System.debug('Principal: $PRINCIPAL_NAME');
+        } catch (Exception e2) {
+            System.debug('✗ Error updating credential: ' + e2.getMessage());
+            throw e2;
+        }
+    } else {
+        System.debug('✗ Error creating credential: ' + e.getMessage());
+        throw e;
+    }
+}
+EOF
+
+echo -e "${GREEN}✓ Apex code generated${NC}"
+echo ""
+
+# Execute Apex code
+echo -e "${BLUE}► Executing Apex code to configure credential...${NC}"
+
+APEX_RESULT=$(sf apex run --file "$TEMP_APEX" --target-org "$ORG_ALIAS" 2>&1)
+
+# Check if successful
+if echo "$APEX_RESULT" | grep -q "✓ External Credential"; then
+    echo -e "${GREEN}✓ Credential configured successfully!${NC}"
+
+    # Cleanup temp file
+    rm -f "$TEMP_APEX"
+
     echo ""
-    echo "Make sure to deploy the Named Credential first:"
-    echo "  sf project deploy start --metadata NamedCredential:$CREDENTIAL_NAME --target-org $ORG_ALIAS"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}✓ Configuration Complete!${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "${BLUE}What was configured:${NC}"
+    echo "  • External Credential: $EXTERNAL_CREDENTIAL_NAME"
+    echo "  • Principal: $PRINCIPAL_NAME"
+    echo "  • Org: $ORG_ALIAS"
+    echo ""
+    echo -e "${BLUE}You can now use the Named Credential in your callouts!${NC}"
+    echo ""
+else
+    echo -e "${RED}✗ Failed to configure credential${NC}"
+    echo ""
+    echo -e "${YELLOW}Apex execution output:${NC}"
+    echo "$APEX_RESULT"
+    echo ""
+    echo -e "${YELLOW}Temp Apex file saved at: $TEMP_APEX${NC}"
+    echo "Review the file and run manually if needed"
     exit 1
 fi
-
-echo -e "${GREEN}✓ Found Named Credential (ID: $RECORD_ID)${NC}"
-
-# Update the password using Tooling API
-# Note: This uses the Metadata API which requires a slightly different approach
-echo -e "${BLUE}Configuring credentials...${NC}"
-
-# Create a temporary file for the metadata update
-TEMP_DIR=$(mktemp -d)
-METADATA_FILE="$TEMP_DIR/${CREDENTIAL_NAME}.namedCredential"
-
-# Note: Direct password update via Tooling API is restricted for security
-# The most reliable method is using the UI or a Connected App with special permissions
-# For now, we'll provide instructions and verify deployment
-
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}⚠️  Named Credential Structure Deployed${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-echo -e "The Named Credential ${GREEN}$CREDENTIAL_NAME${NC} exists in org ${GREEN}$ORG_ALIAS${NC}"
-echo ""
-echo -e "${BLUE}To complete setup, you have 2 options:${NC}"
-echo ""
-echo -e "${GREEN}Option 1: Use Salesforce UI (Recommended - Most Secure)${NC}"
-echo "  1. Go to Setup → Named Credentials"
-echo "  2. Click 'Edit' next to '$CREDENTIAL_NAME'"
-echo "  3. Paste your API key in the Password field"
-echo "  4. Click Save"
-echo ""
-echo -e "${GREEN}Option 2: Use REST API (Advanced - Requires Session ID)${NC}"
-echo "  Run the following command with your session ID:"
-echo ""
-echo -e "${BLUE}  curl -X PATCH \\"
-echo "    'https://\$(sf org display --target-org $ORG_ALIAS --json | jq -r '.result.instanceUrl')/services/data/v62.0/tooling/sobjects/NamedCredential/$RECORD_ID' \\"
-echo "    -H 'Authorization: Bearer \$(sf org display --target-org $ORG_ALIAS --json | jq -r '.result.accessToken')' \\"
-echo "    -H 'Content-Type: application/json' \\"
-echo "    -d '{\"Password\":\"YOUR_API_KEY_HERE\"}'${NC}"
-echo ""
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-
-# Test connection (optional)
-echo -e "${BLUE}Would you like to verify the org connection? (y/n)${NC}"
-read -n 1 -r VERIFY
-echo ""
-
-if [[ $VERIFY =~ ^[Yy]$ ]]; then
-    echo -e "${BLUE}Testing org connection...${NC}"
-    sf org display --target-org "$ORG_ALIAS"
-fi
-
-# Cleanup
-rm -rf "$TEMP_DIR"
-
-echo ""
-echo -e "${GREEN}✓ Configuration complete!${NC}"
-echo ""
-echo -e "${BLUE}Next steps:${NC}"
-echo "  1. Complete the credential setup using Option 1 or 2 above"
-echo "  2. Test your integration with a sample call"
-echo ""

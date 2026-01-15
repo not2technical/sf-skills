@@ -1,6 +1,6 @@
 # Credential Configuration Scripts
 
-**Generic/reusable scripts** for configuring API credentials across sf-skills.
+**Generic/reusable scripts** for configuring API credentials across sf-skills using modern Salesforce patterns.
 
 > 💡 **Pattern:** Each skill should have its own `scripts/setup-credentials.sh` that's tailored to that skill. These scripts in `/scripts/` are generic templates that can be copied and customized.
 >
@@ -8,344 +8,361 @@
 
 ---
 
-## 🆕 What's New: Automatic Endpoint Security
+## 🆕 Modern Approach: Enhanced Named Credentials
 
-**Problem Solved:** Named Credentials require **Remote Site Settings** or **CSP Trusted Sites** to allow outbound HTTP callouts. Previously, users had to configure these manually in the UI.
+**Salesforce now recommends Enhanced Named Credentials** (External Credentials + Named Credentials) over the legacy approach.
 
-**Solution:** Setup scripts now **automatically deploy** endpoint security configurations!
+### What Are Enhanced Named Credentials?
 
-### What Gets Configured Automatically
+**Enhanced Named Credentials** = **External Credential** + **Named Credential** + **Endpoint Security**
 
-When you run `./scripts/setup-credentials.sh`:
-
-1. ✅ **API Credentials** (Custom Setting or Named Credential)
-2. ✅ **Endpoint Security** (CSP Trusted Sites or Remote Site Settings) ⭐ NEW!
-3. ✅ **Org-specific configuration** (handles API version differences)
-
-### How It Works
-
-```bash
-./bland-ai-calls/scripts/setup-credentials.sh AIZoom
-
-# Script automatically:
-# 1. Checks if org supports CSP Trusted Sites (API 48+)
-# 2. If yes → deploys CSP Trusted Site
-# 3. If no → falls back to Remote Site Setting
-# 4. If already exists → skips deployment
+```
+External Credential (stores the API key securely)
+         ↓
+Named Credential (references the External Credential)
+         ↓
+Your HTTP Callout (uses callout:NamedCredentialName)
 ```
 
-**Result:** No manual UI configuration needed for endpoint security! 🎉
+### Why Use Enhanced Named Credentials?
+
+✅ **More secure** - Credentials encrypted by Salesforce platform
+✅ **Flexible** - Supports multiple authentication protocols (Custom, Basic, OAuth, JWT)
+✅ **Portable** - Easier to manage across multiple orgs
+✅ **Modern** - Recommended by Salesforce for all new integrations
+✅ **Programmable** - Can be configured via ConnectApi (no UI required!)
 
 ---
 
-## 📋 Two Approaches
+## 🎯 The Correct Order of Operations
 
-### Option 1: Named Credentials (Most Secure) ✅ Recommended
-**Best for:** Production environments, OAuth flows, strict security requirements
-
-**Pros:**
-- ✅ Most secure (Salesforce-encrypted storage)
-- ✅ Supports OAuth, JWT, Certificate auth
-- ✅ Built-in token refresh
-- ✅ Industry standard
-
-**Cons:**
-- ⚠️ Requires one-time UI configuration per org
-
-**Script:** `configure-named-credential.sh`
-
----
-
-### Option 2: Custom Settings (Fully Automated)
-**Best for:** Dev environments, CI/CD pipelines, test automation
-
-**Pros:**
-- ✅ 100% scriptable (no UI required)
-- ✅ Can version control structure
-- ✅ Fast setup
-
-**Cons:**
-- ⚠️ Less secure than Named Credentials
-- ⚠️ No built-in OAuth support
-- ⚠️ Visible in metadata exports
-
-**Script:** `set-api-credential.sh`
-
----
-
-## 🚀 Quick Start
-
-### For Named Credentials (Recommended)
+**CRITICAL:** You must deploy components in this exact order:
 
 ```bash
-# Step 1: Deploy the Named Credential structure
+# 1. Deploy External Credential metadata (defines the credential structure)
 sf project deploy start \
-  --metadata NamedCredential:Bland_AI_API \
-  --target-org AIZoom
+  --source-dir force-app/main/default/externalCredentials/YourAPI.externalCredential-meta.xml \
+  --target-org YourOrg
 
-# Step 2: Configure credentials
-./scripts/configure-named-credential.sh Bland_AI_API AIZoom
+# 2. Deploy Named Credential metadata (references the External Credential)
+sf project deploy start \
+  --source-dir force-app/main/default/namedCredentials/YourAPI.namedCredential-meta.xml \
+  --target-org YourOrg
 
-# Step 3: Follow on-screen instructions to complete setup in UI
+# 3. Deploy endpoint security (allows outbound HTTP calls)
+sf project deploy start \
+  --source-dir force-app/main/default/cspTrustedSites/YourAPI.cspTrustedSite-meta.xml \
+  --target-org YourOrg
+
+# 4. Set the API key programmatically using our script
+./scripts/configure-named-credential.sh YourExternalCredential yourPrincipalName YourOrg
 ```
 
-### For Custom Settings (Fully Automated)
-
-```bash
-# One command - fully automated
-./scripts/set-api-credential.sh BlandAI - AIZoom
-# (Script will prompt for API key securely)
-```
+**Why this order matters:**
+- External Credential must exist before Named Credential can reference it
+- Named Credential must exist before you can set credentials via ConnectApi
+- Endpoint security must exist before making HTTP callouts
 
 ---
 
-## 📖 Detailed Usage
+## 📦 What Gets Deployed
 
-### `configure-named-credential.sh`
+### 1. External Credential Metadata
 
-**Purpose:** Helps configure Named Credentials with secure credential storage
+**File:** `externalCredentials/YourAPI.externalCredential-meta.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalCredential xmlns="http://soap.sforce.com/2006/04/metadata">
+    <authenticationProtocol>Custom</authenticationProtocol>
+    <externalCredentialParameters>
+        <parameterGroup>apiKeyPrincipal</parameterGroup>
+        <parameterName>apiKeyPrincipal</parameterName>
+        <parameterType>NamedPrincipal</parameterType>
+        <sequenceNumber>1</sequenceNumber>
+    </externalCredentialParameters>
+    <label>Your API</label>
+</ExternalCredential>
+```
+
+**Key fields:**
+- `authenticationProtocol` - Custom, Basic, OAuth, JWT, etc.
+- `parameterName` - Principal name (used in configure script)
+- `label` - Display name in Salesforce UI
+
+---
+
+### 2. Named Credential Metadata
+
+**File:** `namedCredentials/YourAPI.namedCredential-meta.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<NamedCredential xmlns="http://soap.sforce.com/2006/04/metadata">
+    <allowMergeFieldsInBody>false</allowMergeFieldsInBody>
+    <allowMergeFieldsInHeader>true</allowMergeFieldsInHeader>
+    <calloutStatus>Enabled</calloutStatus>
+    <generateAuthorizationHeader>false</generateAuthorizationHeader>
+    <label>Your API</label>
+    <namedCredentialParameters>
+        <parameterName>Url</parameterName>
+        <parameterType>Url</parameterType>
+        <parameterValue>https://api.yourservice.com</parameterValue>
+    </namedCredentialParameters>
+    <namedCredentialParameters>
+        <externalCredential>YourExternalCredential</externalCredential>
+        <parameterName>ExternalCredential</parameterName>
+        <parameterType>Authentication</parameterType>
+    </namedCredentialParameters>
+    <namedCredentialType>SecuredEndpoint</namedCredentialType>
+</NamedCredential>
+```
+
+**Key fields:**
+- `externalCredential` - Must match External Credential developer name
+- `parameterValue` (Url) - Base URL for API
+- `namedCredentialType` - Must be "SecuredEndpoint" for Enhanced Named Credentials
+
+---
+
+### 3. Endpoint Security Metadata
+
+**Modern:** CSP Trusted Site (API 48+ / Spring '20+)
+
+**File:** `cspTrustedSites/YourAPI.cspTrustedSite-meta.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <context>All</context>
+    <endpointUrl>https://api.yourservice.com</endpointUrl>
+    <isActive>true</isActive>
+    <isApplicableToConnectSrc>true</isApplicableToConnectSrc>
+</CspTrustedSite>
+```
+
+**Legacy:** Remote Site Setting (all API versions)
+
+**File:** `remoteSiteSettings/YourAPI.remoteSite-meta.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://api.yourservice.com</url>
+</RemoteSiteSetting>
+```
+
+**Tip:** Deploy both CSP and Remote Site for maximum compatibility!
+
+---
+
+## 🛠️ Scripts
+
+### `configure-named-credential.sh` (Enhanced Named Credentials)
+
+**Purpose:** Sets API keys for Enhanced Named Credentials programmatically using ConnectApi
 
 **Usage:**
 ```bash
-./scripts/configure-named-credential.sh <credential-name> <org-alias>
+./scripts/configure-named-credential.sh <external-credential-name> <principal-name> <org-alias>
 ```
 
 **Example:**
 ```bash
-./scripts/configure-named-credential.sh Bland_AI_API AIZoom
+./scripts/configure-named-credential.sh VisualCrossingWeather weatherAPIKey AIZoom
 ```
 
 **What it does:**
-1. Validates org connection
-2. Checks if Named Credential exists
-3. Provides instructions for completing setup via UI
-4. Optionally tests connection
+1. ✅ Validates org connection
+2. ✅ Checks External Credential exists
+3. ✅ Prompts for API key securely (input hidden)
+4. ✅ Generates Apex code using ConnectApi.NamedCredentials.createCredential()
+5. ✅ Executes Apex to store credential encrypted
+6. ✅ Handles create (first-time) vs patch (update) automatically
 
 **Prerequisites:**
-- Named Credential must be deployed first
-- Salesforce CLI (sf) must be installed
-- Must be authenticated to target org
+- External Credential deployed
+- Named Credential deployed
+- Endpoint security (CSP/Remote Site) deployed
+- Salesforce CLI authenticated to target org
+
+**How it works under the hood:**
+```apex
+ConnectApi.CredentialInput newCredentials = new ConnectApi.CredentialInput();
+newCredentials.externalCredential = 'YourExternalCredential';
+newCredentials.principalName = 'yourPrincipalName';
+newCredentials.authenticationProtocol = ConnectApi.CredentialAuthenticationProtocol.Custom;
+
+Map<String, ConnectApi.CredentialValueInput> creds = new Map<String, ConnectApi.CredentialValueInput>();
+ConnectApi.CredentialValueInput apiKeyParam = new ConnectApi.CredentialValueInput();
+apiKeyParam.encrypted = true;
+apiKeyParam.value = 'YOUR_API_KEY';
+creds.put('apiKey', apiKeyParam);
+
+newCredentials.credentials = creds;
+ConnectApi.NamedCredentials.createCredential(newCredentials);
+```
 
 ---
 
-### `set-api-credential.sh`
+### `set-api-credential.sh` (Legacy Custom Settings)
 
-**Purpose:** Programmatically sets API credentials using Custom Settings (fully automated)
+**Purpose:** Sets API credentials using Custom Settings (older approach, still useful for dev/test)
 
 **Usage:**
 ```bash
-# Secure input (recommended)
-./scripts/set-api-credential.sh <setting-name> - <org-alias>
-
-# Direct input (less secure - visible in shell history)
-./scripts/set-api-credential.sh <setting-name> <api-key> <org-alias>
+./scripts/set-api-credential.sh <setting-name> <api-key-or-dash> <org-alias>
 ```
 
-**Examples:**
+**Example:**
 ```bash
-# Secure input (will prompt for key)
+# Secure input (recommended)
 ./scripts/set-api-credential.sh BlandAI - AIZoom
 
-# Direct input
+# Direct input (less secure)
 ./scripts/set-api-credential.sh BlandAI sk_live_abc123xyz AIZoom
 ```
 
-**What it does:**
-1. Creates `API_Credentials__c` Custom Setting (if doesn't exist)
-2. Inserts or updates credential record
-3. Shows code example for using in Apex
+**When to use Custom Settings:**
+- ✅ Dev/test environments
+- ✅ CI/CD pipelines (no Apex execution required)
+- ✅ Simple API key authentication via query parameters
+- ❌ NOT recommended for production
 
-**Apex Usage:**
-```apex
-// Retrieve API key in your Apex code
-API_Credentials__c cred = API_Credentials__c.getInstance('BlandAI');
-String apiKey = cred.API_Key__c;
+---
 
-HttpRequest req = new HttpRequest();
-req.setHeader('Authorization', apiKey);
+## 📚 Complete Example: Weather API Integration
+
+### Step 1: Create Metadata Files
+
+**External Credential:** `externalCredentials/VisualCrossingWeather.externalCredential-meta.xml`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalCredential xmlns="http://soap.sforce.com/2006/04/metadata">
+    <authenticationProtocol>Custom</authenticationProtocol>
+    <externalCredentialParameters>
+        <parameterGroup>weatherAPIKey</parameterGroup>
+        <parameterName>weatherAPIKey</parameterName>
+        <parameterType>NamedPrincipal</parameterType>
+        <sequenceNumber>1</sequenceNumber>
+    </externalCredentialParameters>
+    <label>Visual Crossing Weather</label>
+</ExternalCredential>
 ```
 
+**Named Credential:** `namedCredentials/VisualCrossingWeatherAPI.namedCredential-meta.xml`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<NamedCredential xmlns="http://soap.sforce.com/2006/04/metadata">
+    <allowMergeFieldsInBody>false</allowMergeFieldsInBody>
+    <allowMergeFieldsInHeader>true</allowMergeFieldsInHeader>
+    <calloutStatus>Enabled</calloutStatus>
+    <generateAuthorizationHeader>false</generateAuthorizationHeader>
+    <label>Visual Crossing Weather API</label>
+    <namedCredentialParameters>
+        <parameterName>Url</parameterName>
+        <parameterType>Url</parameterType>
+        <parameterValue>https://weather.visualcrossing.com</parameterValue>
+    </namedCredentialParameters>
+    <namedCredentialParameters>
+        <externalCredential>VisualCrossingWeather</externalCredential>
+        <parameterName>ExternalCredential</parameterName>
+        <parameterType>Authentication</parameterType>
+    </namedCredentialParameters>
+    <namedCredentialType>SecuredEndpoint</namedCredentialType>
+</NamedCredential>
+```
+
+**CSP Trusted Site:** `cspTrustedSites/VisualCrossingWeatherAPI.cspTrustedSite-meta.xml`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <context>All</context>
+    <endpointUrl>https://weather.visualcrossing.com</endpointUrl>
+    <isActive>true</isActive>
+</CspTrustedSite>
+```
+
+### Step 2: Deploy to Org (Correct Order!)
+
+```bash
+# 1. External Credential
+sf project deploy start \
+  --source-dir force-app/main/default/externalCredentials/VisualCrossingWeather.externalCredential-meta.xml \
+  --target-org AIZoom
+
+# 2. Named Credential (deploy together with CSP for efficiency)
+sf project deploy start \
+  --source-dir force-app/main/default/namedCredentials/VisualCrossingWeatherAPI.namedCredential-meta.xml \
+  --source-dir force-app/main/default/cspTrustedSites/VisualCrossingWeatherAPI.cspTrustedSite-meta.xml \
+  --target-org AIZoom
+```
+
+### Step 3: Set API Key
+
+```bash
+./scripts/configure-named-credential.sh VisualCrossingWeather weatherAPIKey AIZoom
+# Enter your API key when prompted
+```
+
+### Step 4: Use in Apex
+
+```apex
+HttpRequest req = new HttpRequest();
+req.setEndpoint('callout:VisualCrossingWeatherAPI/VisualCrossingWebServices/rest/services/timeline/London');
+req.setMethod('GET');
+
+Http http = new Http();
+HttpResponse res = http.send(req);
+System.debug(res.getBody());
+```
+
+**Note:** The API key is automatically included in the request! No manual credential handling needed.
+
 ---
 
-## 🔐 Security Best Practices
+## 🔍 Troubleshooting
 
-### ✅ DO:
-- Use Named Credentials for production
-- Use secure input mode (`-` for API key parameter)
-- Store credentials in password manager
-- Rotate API keys regularly
-- Use different keys per environment
-
-### ❌ DON'T:
-- Commit API keys to source control
-- Share API keys in chat/email
-- Use production keys in dev/sandbox
-- Store keys in shell history (use secure input)
-- Hardcode credentials in Apex
-
----
-
-## 🎯 Use Cases by Skill
-
-| Skill | Credential Type | Script to Use | Example |
-|-------|-----------------|---------------|---------|
-| **bland-ai-calls** | API Key | `set-api-credential.sh` | `./scripts/set-api-credential.sh BlandAI - AIZoom` |
-| **sf-integration** | OAuth 2.0 | `configure-named-credential.sh` | `./scripts/configure-named-credential.sh Stripe_API AIZoom` |
-| **sf-connected-apps** | JWT Bearer | `configure-named-credential.sh` | `./scripts/configure-named-credential.sh JWT_Flow AIZoom` |
-| Custom Integration | Depends | Both available | Choose based on requirements |
-
----
-
-## 🔧 Troubleshooting
+### "External Credential not found"
+**Cause:** External Credential not deployed or wrong developer name
+**Fix:** Deploy External Credential first, check spelling
 
 ### "Named Credential not found"
-**Cause:** Named Credential not deployed to org
+**Cause:** Named Credential not deployed
+**Fix:** Deploy Named Credential after External Credential
 
-**Fix:**
-```bash
-sf project deploy start \
-  --metadata NamedCredential:Bland_AI_API \
-  --target-org AIZoom
-```
+### "There are no existing authentication credentials to update"
+**Cause:** Using `patchCredential()` instead of `createCredential()`
+**Fix:** Our script handles this automatically (tries create, falls back to patch)
 
-### "Cannot connect to org"
-**Cause:** Not authenticated to target org
+### "Unable to connect to endpoint"
+**Cause:** CSP Trusted Site or Remote Site Setting not deployed
+**Fix:** Deploy endpoint security metadata
 
-**Fix:**
-```bash
-sf org login web --alias AIZoom
-```
-
-### "sObject type 'API_Credentials__c' is not supported"
-**Cause:** Custom Setting not yet created (first run)
-
-**Fix:** Script will automatically create it - just rerun
-
-### "API key visible in shell history"
-**Cause:** Used direct input mode
-
-**Fix:** Use secure input mode:
-```bash
-./scripts/set-api-credential.sh BlandAI - AIZoom
-```
-
-Or clear history:
-```bash
-history -c  # Clear current session
-rm ~/.bash_history  # Clear all history (careful!)
-```
+### "You can't set the visibility for a Custom Setting to Protected unless you are in a developer, sandbox, or scratch org"
+**Cause:** Trying to deploy Custom Setting with `Protected` visibility to production org
+**Fix:** Change visibility to `Public` for production orgs
 
 ---
 
-## 🌍 Environment-Specific Credentials
+## 📖 Additional Resources
 
-### Multi-Org Setup
-
-```bash
-# Development
-./scripts/set-api-credential.sh BlandAI - DevOrg
-# Enter test API key
-
-# Sandbox
-./scripts/set-api-credential.sh BlandAI - SandboxOrg
-# Enter sandbox API key
-
-# Production
-./scripts/configure-named-credential.sh Bland_AI_API ProdOrg
-# Use Named Credentials for production (more secure)
-```
+- [Salesforce External Credentials Documentation](https://help.salesforce.com/s/articleView?id=sf.nc_create_edit_external_credential.htm)
+- [ConnectApi.NamedCredentials Class](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_ConnectAPI_NamedCredentials_static_methods.htm)
+- [CSP Trusted Sites Documentation](https://help.salesforce.com/s/articleView?id=sf.csp_trusted_sites.htm)
 
 ---
 
-## 📊 Comparison Matrix
+## 🎯 Key Takeaways
 
-| Feature | Named Credentials | Custom Settings |
-|---------|-------------------|-----------------|
-| **Security** | 🔒🔒🔒 Highest | 🔒🔒 Medium |
-| **Automation** | ⚠️ Partial | ✅ Full |
-| **OAuth Support** | ✅ Built-in | ❌ Manual |
-| **Token Refresh** | ✅ Automatic | ❌ Manual |
-| **Setup Time** | ~2 min (one-time) | ~10 sec |
-| **Scriptable** | Partial | ✅ Full |
-| **Production Ready** | ✅ Yes | ⚠️ Dev/Test only |
-| **Visible in Exports** | ❌ No | ⚠️ Yes (structure) |
+1. **Always use Enhanced Named Credentials** for new integrations
+2. **Order matters** - External Credential → Named Credential → Endpoint Security → Set API Key
+3. **Use our script** - `configure-named-credential.sh` handles ConnectApi complexity
+4. **No UI required** - Everything can be automated via CLI + Apex
+5. **Production-ready** - Credentials are encrypted and secure
 
 ---
 
-## 🔄 Migration Path
-
-### From Custom Settings to Named Credentials
-
-```bash
-# Step 1: Deploy Named Credential
-sf project deploy start --metadata NamedCredential:Bland_AI_API
-
-# Step 2: Copy API key from Custom Setting
-sf data query \
-  --query "SELECT API_Key__c FROM API_Credentials__c WHERE Name='BlandAI'" \
-  --target-org AIZoom
-
-# Step 3: Manually configure Named Credential with same key
-
-# Step 4: Update Apex to use Named Credential
-# Before:
-API_Credentials__c cred = API_Credentials__c.getInstance('BlandAI');
-req.setHeader('Authorization', cred.API_Key__c);
-
-# After:
-req.setEndpoint('callout:Bland_AI_API/calls');
-req.setHeader('Authorization', '{!$Credential.Password}');
-
-# Step 5: Remove Custom Setting (optional)
-```
-
----
-
-## 🆘 Getting Help
-
-**Script Issues:**
-- Check script has execute permissions: `ls -la scripts/`
-- Make executable: `chmod +x scripts/*.sh`
-
-**Salesforce CLI Issues:**
-- Update CLI: `npm install -g @salesforce/cli`
-- Check version: `sf --version`
-
-**API Key Issues:**
-- Verify key in provider dashboard (Bland.ai, Stripe, etc.)
-- Test key with curl: `curl -H "Authorization: YOUR_KEY" https://api.bland.ai/v1/calls`
-
----
-
-## 💡 Pro Tips
-
-1. **Use environment variables for CI/CD:**
-   ```bash
-   export BLAND_API_KEY="${{ secrets.BLAND_API_KEY }}"
-   ./scripts/set-api-credential.sh BlandAI "$BLAND_API_KEY" ProdOrg
-   ```
-
-2. **Create wrapper scripts per skill:**
-   ```bash
-   # scripts/setup-bland-ai.sh
-   #!/bin/bash
-   ./scripts/set-api-credential.sh BlandAI - $1
-   ```
-
-3. **Document which credentials need setup:**
-   ```markdown
-   # .credentials-needed.md
-   - Bland.ai API key: https://app.bland.ai/settings/api
-   - Stripe API key: https://dashboard.stripe.com/apikeys
-   ```
-
-4. **Use password managers:**
-   ```bash
-   # macOS Keychain
-   security find-generic-password -s "BlandAI" -w | \
-     xargs -I {} ./scripts/set-api-credential.sh BlandAI {} AIZoom
-   ```
-
----
-
-**Happy integrating! 🚀**
+**Questions?** Check skill-specific setup guides in each skill's directory (e.g., `bland-ai-calls/SETUP.md`)
