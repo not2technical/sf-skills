@@ -30,7 +30,9 @@
         "./sf-soql",
         "./sf-testing",
         "./sf-imagen",
-        "./sf-ai-agentforce-testing"
+        "./sf-ai-agentforce-testing",
+        "./bland-ai-calls",
+        "./sf-weather-api"
       ]
     },
     {
@@ -240,6 +242,32 @@
       "category": "ai",
       "tags": ["salesforce", "agentforce", "testing", "agents"],
       "keywords": ["agent-testing", "test-spec", "coverage"]
+    },
+    {
+      "name": "bland-ai-calls",
+      "description": "Integrates Bland AI phone calls with Salesforce for automated outbound calling, webhooks, and appointment reminders. Use when building conversational AI calling workflows.",
+      "source": "./bland-ai-calls",
+      "version": "1.0.0",
+      "author": {
+        "name": "August Krys",
+        "url": "https://github.com/not2technical"
+      },
+      "category": "integration",
+      "tags": ["salesforce", "integration", "bland-ai", "phone-calls", "webhooks", "automation", "conversational-ai"],
+      "keywords": ["salesforce", "bland-ai", "phone-calls", "webhooks", "automation", "conversational-ai", "claude-code", "integration"]
+    },
+    {
+      "name": "sf-weather-api",
+      "description": "Integrates Visual Crossing Weather API with Salesforce for real-time weather data, forecasts, and weather-based business logic. Use when building weather-aware applications.",
+      "source": "./sf-weather-api",
+      "version": "1.0.0",
+      "author": {
+        "name": "August Krys",
+        "url": "https://github.com/not2technical"
+      },
+      "category": "integration",
+      "tags": ["salesforce", "integration", "weather-api", "visual-crossing", "forecasts", "external-api"],
+      "keywords": ["salesforce", "weather-api", "visual-crossing", "integration", "named-credentials", "external-api", "claude-code"]
     }
   ]
 }
