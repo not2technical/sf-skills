@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Call</label>
+    <pluralLabel>Calls</pluralLabel>
+    <nameField>
+        <displayFormat>CALL-{0000000}</displayFormat>
+        <label>Call Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>true</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <sharingModel>ReadWrite</sharingModel>
+    
+    <fields>
+        <fullName>Bland_Call_ID__c</fullName>
+        <label>Bland Call ID</label>
+        <type>Text</type>
+        <length>255</length>
+        <unique>true</unique>
+        <externalId>true</externalId>
+        <caseSensitive>false</caseSensitive>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Related_To__c</fullName>
+        <label>Related To</label>
+        <type>Lookup</type>
+        <referenceTo>Lead</referenceTo>
+        <referenceTo>Contact</referenceTo>
+        <referenceTo>Account</referenceTo>
+        <referenceTo>Case</referenceTo>
+        <relationshipLabel>Calls</relationshipLabel>
+        <relationshipName>Bland_Calls</relationshipName>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Status__c</fullName>
+        <label>Status</label>
+        <type>Picklist</type>
+        <required>false</required>
+        <valueSet>
+            <valueSetDefinition>
+                <value>
+                    <fullName>Queued</fullName>
+                    <default>true</default>
+                </value>
+                <value>
+                    <fullName>In Progress</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Answered</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>No Answer</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Completed</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Failed</fullName>
+                    <default>false</default>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    
+    <fields>
+        <fullName>Phone_Number__c</fullName>
+        <label>Phone Number</label>
+        <type>Phone</type>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Duration__c</fullName>
+        <label>Duration (seconds)</label>
+        <type>Number</type>
+        <precision>10</precision>
+        <scale>0</scale>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Cost__c</fullName>
+        <label>Cost</label>
+        <type>Currency</type>
+        <precision>10</precision>
+        <scale>4</scale>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Recording_URL__c</fullName>
+        <label>Recording URL</label>
+        <type>Url</type>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Transcript__c</fullName>
+        <label>Transcript</label>
+        <type>LongTextArea</type>
+        <length>131072</length>
+        <visibleLines>10</visibleLines>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Error_Message__c</fullName>
+        <label>Error Message</label>
+        <type>LongTextArea</type>
+        <length>32768</length>
+        <visibleLines>5</visibleLines>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Queued_At__c</fullName>
+        <label>Queued At</label>
+        <type>DateTime</type>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Started_At__c</fullName>
+        <label>Started At</label>
+        <type>DateTime</type>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Answered_At__c</fullName>
+        <label>Answered At</label>
+        <type>DateTime</type>
+        <required>false</required>
+    </fields>
+    
+    <fields>
+        <fullName>Completed_At__c</fullName>
+        <label>Completed At</label>
+        <type>DateTime</type>
+        <required>false</required>
+    </fields>
+</CustomObject>

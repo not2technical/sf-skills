@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Remote Site Setting for Bland.ai API
+
+    Purpose: Authorizes Salesforce to make HTTP callouts to api.bland.ai
+
+    IMPORTANT: This is the legacy approach. For API 48+ (Spring '20+),
+    use CSP Trusted Sites instead (see BlandAPI.cspTrustedSite-meta.xml)
+
+    Setup:
+    1. Deploy this file to your org
+    2. OR manually create via Setup → Remote Site Settings
+
+    File Location: force-app/main/default/remoteSiteSettings/BlandAPI.remoteSite-meta.xml
+-->
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BlandAPI</fullName>
+    <description>Bland.ai API endpoint for phone call integration</description>
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://api.bland.ai</url>
+</RemoteSiteSetting>

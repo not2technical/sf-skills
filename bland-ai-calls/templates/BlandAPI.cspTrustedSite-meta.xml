@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    CSP Trusted Site for Bland.ai API
+
+    Purpose: Authorizes Salesforce to make HTTP callouts to api.bland.ai
+
+    This is the MODERN approach (API 48+ / Spring '20+) that replaces Remote Site Settings.
+
+    CSP (Content Security Policy) provides:
+    - More granular control over endpoint security
+    - Better alignment with modern web security standards
+    - Per-context security (Apex, Lightning, etc.)
+
+    Setup:
+    1. Deploy this file to your org
+    2. OR manually create via Setup → CSP Trusted Sites
+
+    File Location: force-app/main/default/cspTrustedSites/BlandAPI.cspTrustedSite-meta.xml
+-->
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>BlandAPI</fullName>
+    <description>Bland.ai API endpoint for phone call integration</description>
+    <endpointUrl>https://api.bland.ai</endpointUrl>
+    <isActive>true</isActive>
+
+    <!-- Context: Where this trusted site applies -->
+    <!-- For Apex callouts, use 'Connect' -->
+    <context>All</context>
+
+    <!--
+    Available contexts:
+    - All: Apply to all contexts
+    - Connect: Apex HTTP callouts
+    - Frame: iframe embedding
+    - Img: Image resources
+    - Script: JavaScript resources
+    - Style: CSS resources
+    -->
+</CspTrustedSite>

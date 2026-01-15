@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    CSP Trusted Site for Visual Crossing Weather API
+
+    Purpose: Authorizes Salesforce to make HTTP callouts to weather.visualcrossing.com
+
+    This is the MODERN approach (API 48+ / Spring '20+) for endpoint security.
+
+    API Documentation: https://www.visualcrossing.com/resources/documentation/weather-api/
+
+    File Location: force-app/main/default/cspTrustedSites/VisualCrossingWeatherAPI.cspTrustedSite-meta.xml
+-->
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VisualCrossingWeatherAPI</fullName>
+    <description>Visual Crossing Weather API for weather data integration</description>
+    <endpointUrl>https://weather.visualcrossing.com</endpointUrl>
+    <isActive>true</isActive>
+    <context>All</context>
+</CspTrustedSite>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Remote Site Setting for Visual Crossing Weather API
+
+    Purpose: Authorizes Salesforce to make HTTP callouts to weather.visualcrossing.com
+
+    This is the LEGACY approach (works in all API versions) - used as fallback
+    for orgs that don't support CSP Trusted Sites.
+
+    API Documentation: https://www.visualcrossing.com/resources/documentation/weather-api/
+
+    File Location: force-app/main/default/remoteSiteSettings/VisualCrossingWeatherAPI.remoteSite-meta.xml
+-->
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VisualCrossingWeatherAPI</fullName>
+    <description>Visual Crossing Weather API for weather data integration</description>
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://weather.visualcrossing.com</url>
+</RemoteSiteSetting>
